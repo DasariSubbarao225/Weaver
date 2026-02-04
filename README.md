@@ -29,14 +29,18 @@ A modern, responsive interior design website showcasing services, portfolio, and
 - **📝 Content Editor**: Edit site info, hero section, about section, and contact details
 - **🛠️ Services Manager**: Add, edit, and delete services
 - **🖼️ Portfolio Manager**: Manage portfolio items with image/video support
-- **📷 Media Library**: Store and manage images and video URLs
+- **📷 Media Library**: Upload and manage images and videos (supports file uploads!)
 - **⚙️ Settings**: Configure theme colors and admin credentials
 
 ### Configuration Storage
 
-The admin panel stores all configuration in the browser's localStorage. You can:
-- **Export**: Download your configuration as a JSON file for backup
-- **Import**: Restore configuration from a previously exported JSON file
+The admin panel now uses **server-side file-based storage**:
+- All content is saved to `backend/data/content.json` via REST API
+- Changes persist across browser sessions and devices
+- File uploads (images/videos) are stored in `backend/uploads/`
+- You can still export/import configuration as JSON for backup/migration
+
+**Note:** The backend server must be running for the admin panel to function.
 
 ## 🚀 Quick Start
 
@@ -48,19 +52,122 @@ The admin panel stores all configuration in the browser's localStorage. You can:
    cd Weaver
    ```
 
-2. **Open the website**
-   - Simply open `index.html` in your web browser
-   - Or use a local server (recommended):
+2. **Start the Backend Server**
    ```bash
+   cd backend
+   npm install
+   npm start
+   ```
+   
+   The backend server will start on `http://localhost:3000` and provide:
+   - REST API for content management
+   - File upload handling for images and videos
+   - Static file serving for uploaded media
+
+3. **Start the Frontend Server (in a new terminal)**
+   ```bash
+   # From the Weaver root directory
    # Using Python 3
    python3 -m http.server 8000
    
-   # Using Node.js (http-server)
-   npx http-server
+   # Or using Node.js (http-server)
+   npx http-server -p 8000
    ```
 
-3. **Access the website**
-   - Open your browser and navigate to `http://localhost:8000`
+4. **Access the website**
+   - Main site: `http://localhost:8000`
+   - Admin panel: `http://localhost:8000/admin/`
+   - Default credentials: username `admin`, password `password`
+
+**Note:** Both backend (port 3000) and frontend (port 8000) servers must be running simultaneously for the admin panel to work properly.
+
+## 🔌 Backend API
+
+The backend server provides a REST API for managing site content and media uploads.
+
+### API Endpoints
+
+#### `GET /api/content`
+Retrieves the current site configuration.
+
+**Response:**
+```json
+{
+  "site": { "name": "...", "tagline": "...", "description": "..." },
+  "hero": { "title": "...", "subtitle": "...", ... },
+  "about": { ... },
+  "services": { ... },
+  "portfolio": { ... },
+  "contact": { ... },
+  "media": { "images": [...], "videos": [...] }
+}
+```
+
+#### `POST /api/content`
+Saves site configuration.
+
+**Request Body:** Complete configuration object (JSON)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Content saved successfully"
+}
+```
+
+#### `POST /api/upload`
+Uploads an image or video file.
+
+**Request:** `multipart/form-data` with `file` field
+
+**Response:**
+```json
+{
+  "success": true,
+  "url": "/uploads/filename.jpg",
+  "filename": "filename.jpg",
+  "originalName": "original.jpg",
+  "mimetype": "image/jpeg",
+  "size": 12345
+}
+```
+
+**Supported file types:**
+- Images: JPEG, PNG, GIF, WebP
+- Videos: MP4, WebM, OGG
+
+**File size limit:** 10MB
+
+#### `GET /uploads/:filename`
+Serves uploaded media files statically.
+
+#### `GET /api/health`
+Health check endpoint.
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-02-04T18:15:00.000Z"
+}
+```
+
+### Data Storage
+
+- **Content:** Stored in `backend/data/content.json`
+- **Uploads:** Stored in `backend/uploads/` directory
+- All changes persist to disk immediately
+
+### Future Improvements
+
+The current implementation uses file-based storage for simplicity. Future enhancements could include:
+
+- **Authentication:** Add JWT-based authentication for API endpoints
+- **Database:** Migrate from file storage to MongoDB or PostgreSQL
+- **Cloud Storage:** Integrate AWS S3 or similar for media uploads
+- **Rate Limiting:** Add request rate limiting for security
+- **Image Processing:** Add automatic image optimization and thumbnail generation
 
 ## 📁 Project Structure
 
@@ -70,15 +177,21 @@ Weaver/
 ├── css/
 │   └── styles.css         # Stylesheet with responsive design
 ├── js/
-│   └── script.js          # JavaScript for interactivity
+│   └── script.js          # JavaScript for interactivity (fetches from API)
 ├── admin/                  # Admin panel
 │   ├── index.html         # Admin login page
 │   ├── dashboard.html     # Admin dashboard
 │   ├── admin-styles.css   # Admin panel styles
 │   ├── admin-auth.js      # Authentication logic
-│   └── admin-dashboard.js # Dashboard functionality
-├── data/                   # Configuration files
-│   ├── site-config.json   # Site content configuration
+│   └── admin-dashboard.js # Dashboard functionality (uses API)
+├── backend/                # Backend server (NEW)
+│   ├── server.js          # Express.js server
+│   ├── package.json       # Node.js dependencies
+│   ├── data/
+│   │   └── content.json   # Site configuration storage
+│   └── uploads/           # Uploaded media files
+├── data/                   # Legacy configuration files
+│   ├── site-config.json   # Default site configuration
 │   └── admin-config.json  # Admin settings
 ├── .github/
 │   └── workflows/
