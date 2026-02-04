@@ -158,7 +158,6 @@ portfolioItems.forEach(item => {
 });
 
 // Add scroll-based navbar styling
-let lastScroll = 0;
 const navbar = document.querySelector('.navbar');
 
 window.addEventListener('scroll', () => {
@@ -171,8 +170,6 @@ window.addEventListener('scroll', () => {
         navbar.style.background = '#ffffff';
         navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
     }
-    
-    lastScroll = currentScroll;
 });
 
 // Log initialization
