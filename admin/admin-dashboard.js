@@ -1,7 +1,7 @@
 // Admin Dashboard Module
 
-// Site configuration storage key
-const SITE_CONFIG_KEY = 'weaver_site_config';
+// API configuration
+const API_BASE_URL = 'http://localhost:3000';
 
 // Default site configuration
 const DEFAULT_SITE_CONFIG = {
@@ -75,23 +75,44 @@ const DEFAULT_SITE_CONFIG = {
     }
 };
 
-// Get site configuration
-function getSiteConfig() {
-    const stored = localStorage.getItem(SITE_CONFIG_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Error parsing site config:', e);
+// Get site configuration from backend API
+async function getSiteConfig() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/content`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch site config');
         }
+        const data = await response.json();
+        return data;
+    } catch (e) {
+        console.error('Error fetching site config:', e);
+        showToast('Error loading configuration. Using defaults.', 'error');
+        return DEFAULT_SITE_CONFIG;
     }
-    return DEFAULT_SITE_CONFIG;
 }
 
-// Save site configuration
-function saveSiteConfig(config) {
-    localStorage.setItem(SITE_CONFIG_KEY, JSON.stringify(config));
-    showToast('Configuration saved successfully!', 'success');
+// Save site configuration to backend API
+async function saveSiteConfig(config) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/content`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(config)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save site config');
+        }
+        
+        showToast('Configuration saved successfully!', 'success');
+        return await response.json();
+    } catch (e) {
+        console.error('Error saving site config:', e);
+        showToast('Error saving configuration. Please try again.', 'error');
+        throw e;
+    }
 }
 
 // Show toast notification
@@ -113,10 +134,10 @@ function generateId() {
 }
 
 // Initialize dashboard
-function initDashboard() {
+async function initDashboard() {
     if (!window.location.pathname.includes('dashboard.html')) return;
     
-    const config = getSiteConfig();
+    const config = await getSiteConfig();
     
     // Update admin username display
     const adminUsernameDisplay = document.getElementById('adminUsername');
@@ -453,11 +474,11 @@ function editService(service) {
 }
 
 // Delete service
-function deleteService(id) {
+async function deleteService(id) {
     if (confirm('Are you sure you want to delete this service?')) {
-        const config = getSiteConfig();
+        const config = await getSiteConfig();
         config.services.items = config.services.items.filter(s => s.id !== id);
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
         loadServices(config);
         updateDashboardCounters(config);
     }
@@ -552,11 +573,11 @@ function editPortfolioItem(item) {
 }
 
 // Delete portfolio item
-function deletePortfolioItem(id) {
+async function deletePortfolioItem(id) {
     if (confirm('Are you sure you want to delete this portfolio item?')) {
-        const config = getSiteConfig();
+        const config = await getSiteConfig();
         config.portfolio.items = config.portfolio.items.filter(p => p.id !== id);
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
         loadPortfolio(config);
         updateDashboardCounters(config);
     }
@@ -652,15 +673,15 @@ function copyToClipboard(text) {
 }
 
 // Delete media
-function deleteMedia(id, type) {
+async function deleteMedia(id, type) {
     if (confirm('Are you sure you want to delete this media item?')) {
-        const config = getSiteConfig();
+        const config = await getSiteConfig();
         if (type === 'image') {
             config.media.images = config.media.images.filter(m => m.id !== id);
         } else {
             config.media.videos = config.media.videos.filter(m => m.id !== id);
         }
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
         loadMedia(config);
         updateDashboardCounters(config);
     }
@@ -764,16 +785,16 @@ function initModals() {
     closeModal?.addEventListener('click', () => modal.classList.remove('active'));
     cancelModal?.addEventListener('click', () => modal.classList.remove('active'));
     
-    saveModal?.addEventListener('click', () => {
+    saveModal?.addEventListener('click', async () => {
         const type = modal.dataset.type;
         const editId = modal.dataset.editId;
         
         if (type === 'service') {
-            saveService(editId);
+            await saveService(editId);
         } else if (type === 'portfolio') {
-            savePortfolioItem(editId);
+            await savePortfolioItem(editId);
         } else if (type === 'media-image' || type === 'media-video') {
-            saveMedia(type === 'media-image' ? 'image' : 'video');
+            await saveMedia(type === 'media-image' ? 'image' : 'video');
         }
         
         modal.classList.remove('active');
@@ -788,7 +809,7 @@ function initModals() {
 }
 
 // Save service
-function saveService(editId) {
+async function saveService(editId) {
     const title = document.getElementById('serviceTitle').value;
     const description = document.getElementById('serviceDescription').value;
     
@@ -797,7 +818,7 @@ function saveService(editId) {
         return;
     }
     
-    const config = getSiteConfig();
+    const config = await getSiteConfig();
     
     if (editId) {
         const index = config.services.items.findIndex(s => s.id == editId);
@@ -812,13 +833,13 @@ function saveService(editId) {
         });
     }
     
-    saveSiteConfig(config);
+    await saveSiteConfig(config);
     loadServices(config);
     updateDashboardCounters(config);
 }
 
 // Save portfolio item
-function savePortfolioItem(editId) {
+async function savePortfolioItem(editId) {
     const title = document.getElementById('portfolioTitle').value;
     const description = document.getElementById('portfolioDescription').value;
     const image = document.getElementById('portfolioImage').value;
@@ -830,7 +851,7 @@ function savePortfolioItem(editId) {
         return;
     }
     
-    const config = getSiteConfig();
+    const config = await getSiteConfig();
     
     const portfolioItem = {
         id: editId || generateId(),
@@ -850,13 +871,13 @@ function savePortfolioItem(editId) {
         config.portfolio.items.push(portfolioItem);
     }
     
-    saveSiteConfig(config);
+    await saveSiteConfig(config);
     loadPortfolio(config);
     updateDashboardCounters(config);
 }
 
 // Save media
-function saveMedia(type) {
+async function saveMedia(type) {
     const name = document.getElementById('mediaName').value;
     const url = document.getElementById('mediaUrl').value;
     
@@ -865,7 +886,7 @@ function saveMedia(type) {
         return;
     }
     
-    const config = getSiteConfig();
+    const config = await getSiteConfig();
     
     const mediaItem = {
         id: generateId(),
@@ -881,7 +902,7 @@ function saveMedia(type) {
         config.media.videos.push(mediaItem);
     }
     
-    saveSiteConfig(config);
+    await saveSiteConfig(config);
     loadMedia(config);
     updateDashboardCounters(config);
 }
@@ -913,8 +934,8 @@ function initQuickActions() {
 // Initialize save buttons
 function initSaveButtons() {
     // Save content button
-    document.getElementById('saveContentBtn')?.addEventListener('click', () => {
-        const config = getSiteConfig();
+    document.getElementById('saveContentBtn')?.addEventListener('click', async () => {
+        const config = await getSiteConfig();
         
         // Site Info
         config.site.name = document.getElementById('siteName').value;
@@ -965,12 +986,12 @@ function initSaveButtons() {
         // Portfolio section title  
         config.portfolio.title = document.getElementById('portfolioSectionTitle').value;
         
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
     });
     
     // Save settings button
-    document.getElementById('saveSettingsBtn')?.addEventListener('click', () => {
-        const config = getSiteConfig();
+    document.getElementById('saveSettingsBtn')?.addEventListener('click', async () => {
+        const config = await getSiteConfig();
         
         // Theme colors
         config.settings = config.settings || {};
@@ -988,18 +1009,18 @@ function initSaveButtons() {
         }
         
         if (newUsername || newPassword) {
-            updateCredentials(newUsername, newPassword);
+            await updateCredentials(newUsername, newPassword);
         }
         
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
     });
 }
 
 // Initialize export/import
 function initExportImport() {
     // Export config
-    document.getElementById('exportConfigBtn')?.addEventListener('click', () => {
-        const config = getSiteConfig();
+    document.getElementById('exportConfigBtn')?.addEventListener('click', async () => {
+        const config = await getSiteConfig();
         const dataStr = JSON.stringify(config, null, 2);
         const dataBlob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(dataBlob);
@@ -1021,14 +1042,14 @@ function initExportImport() {
         importFile.click();
     });
     
-    importFile?.addEventListener('change', (e) => {
+    importFile?.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = async (event) => {
                 try {
                     const config = JSON.parse(event.target.result);
-                    saveSiteConfig(config);
+                    await saveSiteConfig(config);
                     showToast('Configuration imported successfully!');
                     
                     // Reload all sections
