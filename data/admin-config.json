@@ -1,0 +1,11 @@
+{
+  "admin": {
+    "username": "admin",
+    "passwordHash": "5f4dcc3b5aa765d61d8327deb882cf99"
+  },
+  "settings": {
+    "primaryColor": "#667eea",
+    "secondaryColor": "#764ba2",
+    "fontFamily": "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+  }
+}

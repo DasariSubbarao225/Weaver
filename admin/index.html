@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Weaver Interiors</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body class="admin-body">
+    <div class="admin-login-container">
+        <div class="admin-login-card">
+            <div class="admin-logo">
+                <h1>Weaver Interiors</h1>
+                <p>Admin Panel</p>
+            </div>
+            <form id="loginForm" class="admin-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Enter username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+                <div id="loginError" class="error-message"></div>
+                <button type="submit" class="btn btn-admin-primary">Login</button>
+            </form>
+            <div class="login-info">
+                <p><strong>Demo Credentials:</strong></p>
+                <p>Username: admin | Password: password</p>
+            </div>
+            <div class="security-notice">
+                <p><small>⚠️ This is a client-side admin panel for demonstration and content preview purposes. For production use, implement server-side authentication.</small></p>
+            </div>
+        </div>
+    </div>
+    <script src="admin-auth.js"></script>
+</body>
+</html>
