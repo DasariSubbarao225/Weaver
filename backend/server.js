@@ -1,12 +1,30 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const rateLimit = require('express-rate-limit');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Rate limiting configuration
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const uploadLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit each IP to 10 uploads per windowMs
+    message: 'Too many upload requests, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // Ensure required directories exist
 const dataDir = path.join(__dirname, 'data');
@@ -29,6 +47,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Apply rate limiting to all API routes
+app.use('/api/', apiLimiter);
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(uploadsDir));
@@ -207,7 +228,7 @@ app.post('/api/content', simpleAuth, async (req, res) => {
 });
 
 // Upload image
-app.post('/api/upload/image', simpleAuth, imageUpload.single('image'), (req, res) => {
+app.post('/api/upload/image', uploadLimiter, simpleAuth, imageUpload.single('image'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
@@ -226,7 +247,7 @@ app.post('/api/upload/image', simpleAuth, imageUpload.single('image'), (req, res
 });
 
 // Upload video
-app.post('/api/upload/video', simpleAuth, videoUpload.single('video'), (req, res) => {
+app.post('/api/upload/video', uploadLimiter, simpleAuth, videoUpload.single('video'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
