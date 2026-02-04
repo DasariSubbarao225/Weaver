@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Weaver Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body class="admin-body">
+    <!-- Admin Sidebar -->
+    <nav class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <h2>Weaver Admin</h2>
+            <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#dashboard" class="menu-link active" data-section="dashboard">📊 Dashboard</a></li>
+            <li><a href="#content" class="menu-link" data-section="content">📝 Content Editor</a></li>
+            <li><a href="#services" class="menu-link" data-section="services">🛠️ Services</a></li>
+            <li><a href="#portfolio" class="menu-link" data-section="portfolio">🖼️ Portfolio</a></li>
+            <li><a href="#media" class="menu-link" data-section="media">📷 Media Library</a></li>
+            <li><a href="#settings" class="menu-link" data-section="settings">⚙️ Settings</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="../index.html" class="btn btn-view-site" target="_blank">👁️ View Site</a>
+            <button id="logoutBtn" class="btn btn-logout">🚪 Logout</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="admin-main" id="adminMain">
+        <header class="admin-header">
+            <h1 id="pageTitle">Dashboard</h1>
+            <div class="admin-user">
+                <span id="adminUsername">Admin</span>
+            </div>
+        </header>
+
+        <!-- Dashboard Section -->
+        <section id="dashboardSection" class="admin-section active">
+            <div class="dashboard-cards">
+                <div class="dashboard-card">
+                    <div class="card-icon">📝</div>
+                    <div class="card-content">
+                        <h3>Content Sections</h3>
+                        <p id="contentCount">5</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-icon">🛠️</div>
+                    <div class="card-content">
+                        <h3>Services</h3>
+                        <p id="servicesCount">0</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-icon">🖼️</div>
+                    <div class="card-content">
+                        <h3>Portfolio Items</h3>
+                        <p id="portfolioCount">0</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-icon">📷</div>
+                    <div class="card-content">
+                        <h3>Media Files</h3>
+                        <p id="mediaCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="quick-actions-grid">
+                    <button class="quick-action-btn" data-action="content">✏️ Edit Content</button>
+                    <button class="quick-action-btn" data-action="services">➕ Add Service</button>
+                    <button class="quick-action-btn" data-action="portfolio">🖼️ Add Portfolio Item</button>
+                    <button class="quick-action-btn" data-action="media">📤 Upload Media</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Content Editor Section -->
+        <section id="contentSection" class="admin-section">
+            <div class="section-header">
+                <h2>Content Editor</h2>
+                <button id="saveContentBtn" class="btn btn-admin-primary">💾 Save Changes</button>
+            </div>
+            
+            <div class="content-tabs">
+                <button class="tab-btn active" data-tab="siteInfo">Site Info</button>
+                <button class="tab-btn" data-tab="hero">Hero Section</button>
+                <button class="tab-btn" data-tab="about">About Section</button>
+                <button class="tab-btn" data-tab="contact">Contact Info</button>
+            </div>
+
+            <!-- Site Info Tab -->
+            <div class="tab-content active" id="siteInfoTab">
+                <div class="form-card">
+                    <h3>Site Information</h3>
+                    <div class="form-group">
+                        <label for="siteName">Site Name</label>
+                        <input type="text" id="siteName" name="siteName">
+                    </div>
+                    <div class="form-group">
+                        <label for="siteTagline">Tagline</label>
+                        <input type="text" id="siteTagline" name="siteTagline">
+                    </div>
+                    <div class="form-group">
+                        <label for="siteDescription">Meta Description</label>
+                        <textarea id="siteDescription" name="siteDescription" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Tab -->
+            <div class="tab-content" id="heroTab">
+                <div class="form-card">
+                    <h3>Hero Section</h3>
+                    <div class="form-group">
+                        <label for="heroTitle">Title</label>
+                        <input type="text" id="heroTitle" name="heroTitle">
+                    </div>
+                    <div class="form-group">
+                        <label for="heroSubtitle">Subtitle</label>
+                        <input type="text" id="heroSubtitle" name="heroSubtitle">
+                    </div>
+                    <div class="form-group">
+                        <label for="heroButtonText">Button Text</label>
+                        <input type="text" id="heroButtonText" name="heroButtonText">
+                    </div>
+                    <div class="form-group">
+                        <label for="heroButtonLink">Button Link</label>
+                        <input type="text" id="heroButtonLink" name="heroButtonLink">
+                    </div>
+                    <div class="form-group">
+                        <label for="heroBackgroundImage">Background Image URL</label>
+                        <div class="input-with-button">
+                            <input type="text" id="heroBackgroundImage" name="heroBackgroundImage" placeholder="Enter URL or select from media">
+                            <button type="button" class="btn btn-select-media" data-target="heroBackgroundImage">📷 Select</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Tab -->
+            <div class="tab-content" id="aboutTab">
+                <div class="form-card">
+                    <h3>About Section</h3>
+                    <div class="form-group">
+                        <label for="aboutTitle">Section Title</label>
+                        <input type="text" id="aboutTitle" name="aboutTitle">
+                    </div>
+                    <div class="form-group">
+                        <label for="aboutParagraph1">First Paragraph</label>
+                        <textarea id="aboutParagraph1" name="aboutParagraph1" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="aboutParagraph2">Second Paragraph</label>
+                        <textarea id="aboutParagraph2" name="aboutParagraph2" rows="4"></textarea>
+                    </div>
+                    <h4>Features</h4>
+                    <div id="aboutFeaturesContainer" class="features-editor">
+                        <!-- Features will be dynamically loaded -->
+                    </div>
+                    <button type="button" id="addFeatureBtn" class="btn btn-add">➕ Add Feature</button>
+                </div>
+            </div>
+
+            <!-- Contact Tab -->
+            <div class="tab-content" id="contactTab">
+                <div class="form-card">
+                    <h3>Contact Information</h3>
+                    <div class="form-group">
+                        <label for="contactTitle">Section Title</label>
+                        <input type="text" id="contactTitle" name="contactTitle">
+                    </div>
+                    <div class="form-group">
+                        <label for="contactPhone">Phone</label>
+                        <input type="tel" id="contactPhone" name="contactPhone">
+                    </div>
+                    <div class="form-group">
+                        <label for="contactEmail">Email</label>
+                        <input type="email" id="contactEmail" name="contactEmail">
+                    </div>
+                    <div class="form-group">
+                        <label for="contactAddress">Address</label>
+                        <textarea id="contactAddress" name="contactAddress" rows="2"></textarea>
+                    </div>
+                    <h4>Business Hours</h4>
+                    <div id="businessHoursContainer">
+                        <!-- Business hours will be dynamically loaded -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="servicesSection" class="admin-section">
+            <div class="section-header">
+                <h2>Services Manager</h2>
+                <button id="addServiceBtn" class="btn btn-admin-primary">➕ Add Service</button>
+            </div>
+            <div class="form-group">
+                <label for="servicesSectionTitle">Section Title</label>
+                <input type="text" id="servicesSectionTitle" name="servicesSectionTitle">
+            </div>
+            <div id="servicesContainer" class="items-grid">
+                <!-- Services will be dynamically loaded -->
+            </div>
+        </section>
+
+        <!-- Portfolio Section -->
+        <section id="portfolioSection" class="admin-section">
+            <div class="section-header">
+                <h2>Portfolio Manager</h2>
+                <button id="addPortfolioBtn" class="btn btn-admin-primary">➕ Add Portfolio Item</button>
+            </div>
+            <div class="form-group">
+                <label for="portfolioSectionTitle">Section Title</label>
+                <input type="text" id="portfolioSectionTitle" name="portfolioSectionTitle">
+            </div>
+            <div id="portfolioContainer" class="items-grid">
+                <!-- Portfolio items will be dynamically loaded -->
+            </div>
+        </section>
+
+        <!-- Media Library Section -->
+        <section id="mediaSection" class="admin-section">
+            <div class="section-header">
+                <h2>Media Library</h2>
+                <div class="media-actions">
+                    <button id="uploadImageBtn" class="btn btn-admin-primary">📷 Add Image</button>
+                    <button id="uploadVideoBtn" class="btn btn-admin-secondary">🎬 Add Video</button>
+                </div>
+            </div>
+            
+            <div class="media-tabs">
+                <button class="tab-btn active" data-media-tab="images">Images</button>
+                <button class="tab-btn" data-media-tab="videos">Videos</button>
+            </div>
+
+            <!-- Images Tab -->
+            <div class="media-tab-content active" id="imagesTab">
+                <div id="imagesContainer" class="media-grid">
+                    <!-- Images will be dynamically loaded -->
+                    <div class="empty-media">
+                        <p>No images uploaded yet.</p>
+                        <p>Click "Add Image" to upload images.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Videos Tab -->
+            <div class="media-tab-content" id="videosTab">
+                <div id="videosContainer" class="media-grid">
+                    <!-- Videos will be dynamically loaded -->
+                    <div class="empty-media">
+                        <p>No videos added yet.</p>
+                        <p>Click "Add Video" to add video URLs.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settingsSection" class="admin-section">
+            <div class="section-header">
+                <h2>Site Settings</h2>
+                <button id="saveSettingsBtn" class="btn btn-admin-primary">💾 Save Settings</button>
+            </div>
+            
+            <div class="settings-grid">
+                <div class="form-card">
+                    <h3>🎨 Theme Colors</h3>
+                    <div class="form-group">
+                        <label for="primaryColor">Primary Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="primaryColor" name="primaryColor" value="#667eea">
+                            <input type="text" id="primaryColorText" value="#667eea">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="secondaryColor">Secondary Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="secondaryColor" name="secondaryColor" value="#764ba2">
+                            <input type="text" id="secondaryColorText" value="#764ba2">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <h3>🔒 Admin Credentials</h3>
+                    <div class="form-group">
+                        <label for="adminUsername">Username</label>
+                        <input type="text" id="adminUsername" name="adminUsername">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword" placeholder="Leave blank to keep current">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm new password">
+                    </div>
+                </div>
+
+                <div class="form-card full-width">
+                    <h3>📤 Export/Import Configuration</h3>
+                    <div class="export-import-btns">
+                        <button id="exportConfigBtn" class="btn btn-admin-secondary">📥 Export Config</button>
+                        <button id="importConfigBtn" class="btn btn-admin-secondary">📤 Import Config</button>
+                        <input type="file" id="importConfigFile" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for adding/editing items -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Item</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic form content -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" id="cancelModal">Cancel</button>
+                <button class="btn btn-admin-primary" id="saveModal">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Selector Modal -->
+    <div id="mediaSelectorModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Select Media</h2>
+                <button class="modal-close" id="closeMediaSelector">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="media-selector-tabs">
+                    <button class="tab-btn active" data-selector-tab="images">Images</button>
+                    <button class="tab-btn" data-selector-tab="videos">Videos</button>
+                </div>
+                <div id="mediaSelectorContent" class="media-grid">
+                    <!-- Media items will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="admin-auth.js"></script>
+    <script src="admin-dashboard.js"></script>
+</body>
+</html>
