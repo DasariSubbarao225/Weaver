@@ -1,9 +1,11 @@
 // Admin Dashboard Module
 
-// API Configuration
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-    ? 'http://localhost:3000/api' 
-    : '/api';
+// API Configuration (check if already defined in admin-auth.js)
+if (typeof API_BASE_URL === 'undefined') {
+    var API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:3000/api' 
+        : '/api';
+}
 
 // Site configuration storage key (kept for backward compatibility)
 const SITE_CONFIG_KEY = 'weaver_site_config';
@@ -725,24 +727,55 @@ function openMediaModal(type) {
             <input type="text" id="mediaName" placeholder="${type === 'image' ? 'Image name' : 'Video name'}">
         </div>
         <div class="form-group">
-            <label for="mediaUrl">URL</label>
+            <label>Upload File</label>
+            <input type="file" id="mediaFile" accept="${type === 'image' ? 'image/*' : 'video/*'}" style="width: 100%; padding: 8px; background: #16213e; border: 1px solid #2c3e50; border-radius: 8px; color: #e0e0e0;">
+            <small style="color: #888; display: block; margin-top: 5px;">Or enter a URL below instead</small>
+        </div>
+        <div class="form-group">
+            <label for="mediaUrl">URL (Alternative)</label>
             <input type="text" id="mediaUrl" placeholder="${type === 'image' ? 'Image URL (https://...)' : 'Video URL (YouTube, Vimeo, etc.)'}">
         </div>
         ${type === 'image' ? `
         <div class="form-group">
             <label>Preview</label>
             <div id="imagePreview" style="height: 150px; background: #16213e; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #888;">
-                Enter URL to preview
+                Upload a file or enter URL to preview
             </div>
         </div>
         ` : ''}
+        <div id="uploadProgress" style="display: none; margin-top: 10px;">
+            <div style="background: #16213e; border-radius: 8px; height: 20px; overflow: hidden;">
+                <div id="uploadProgressBar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <small id="uploadStatus" style="color: #888; display: block; margin-top: 5px;"></small>
+        </div>
     `;
     
-    // Image preview functionality
+    // File upload and preview functionality
+    const fileInput = modalBody.querySelector('#mediaFile');
+    const urlInput = modalBody.querySelector('#mediaUrl');
+    
     if (type === 'image') {
-        const urlInput = modalBody.querySelector('#mediaUrl');
         const preview = modalBody.querySelector('#imagePreview');
         
+        // File preview
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    preview.style.backgroundImage = `url('${event.target.result}')`;
+                    preview.style.backgroundSize = 'cover';
+                    preview.style.backgroundPosition = 'center';
+                    preview.textContent = '';
+                };
+                reader.readAsDataURL(file);
+                // Clear URL input when file is selected
+                urlInput.value = '';
+            }
+        });
+        
+        // URL preview
         urlInput.addEventListener('input', () => {
             const url = urlInput.value;
             if (url) {
@@ -750,12 +783,28 @@ function openMediaModal(type) {
                 preview.style.backgroundSize = 'cover';
                 preview.style.backgroundPosition = 'center';
                 preview.textContent = '';
-            } else {
+                // Clear file input when URL is entered
+                fileInput.value = '';
+            } else if (!fileInput.files.length) {
                 preview.style.backgroundImage = '';
-                preview.textContent = 'Enter URL to preview';
+                preview.textContent = 'Upload a file or enter URL to preview';
             }
         });
     }
+    
+    // Clear URL when file is selected
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+            urlInput.value = '';
+        }
+    });
+    
+    // Clear file when URL is entered
+    urlInput.addEventListener('input', () => {
+        if (urlInput.value) {
+            fileInput.value = '';
+        }
+    });
     
     modal.classList.add('active');
     modal.dataset.type = type === 'image' ? 'media-image' : 'media-video';
@@ -895,18 +944,64 @@ async function savePortfolioItem(editId) {
 async function saveMedia(type) {
     const name = document.getElementById('mediaName').value;
     const url = document.getElementById('mediaUrl').value;
+    const fileInput = document.getElementById('mediaFile');
+    const file = fileInput?.files[0];
     
-    if (!url) {
-        showToast('Please enter a URL', 'error');
+    // Check if either file or URL is provided
+    if (!file && !url) {
+        showToast('Please upload a file or enter a URL', 'error');
         return;
+    }
+    
+    let mediaUrl = url;
+    
+    // If file is uploaded, send it to backend
+    if (file) {
+        try {
+            const progressDiv = document.getElementById('uploadProgress');
+            const progressBar = document.getElementById('uploadProgressBar');
+            const statusText = document.getElementById('uploadStatus');
+            
+            progressDiv.style.display = 'block';
+            statusText.textContent = 'Uploading...';
+            progressBar.style.width = '50%';
+            
+            const formData = new FormData();
+            formData.append(type === 'image' ? 'image' : 'video', file);
+            
+            const response = await fetch(`${API_BASE_URL}/upload/${type === 'image' ? 'image' : 'video'}`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+            
+            const result = await response.json();
+            mediaUrl = `${window.location.protocol}//${window.location.hostname}:3000${result.url}`;
+            
+            progressBar.style.width = '100%';
+            statusText.textContent = 'Upload complete!';
+            
+            setTimeout(() => {
+                progressDiv.style.display = 'none';
+                progressBar.style.width = '0%';
+            }, 1000);
+            
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            showToast('Failed to upload file: ' + error.message, 'error');
+            return;
+        }
     }
     
     const config = await getSiteConfig();
     
     const mediaItem = {
         id: generateId(),
-        name: name || (type === 'image' ? 'Image' : 'Video'),
-        url
+        name: name || file?.name || (type === 'image' ? 'Image' : 'Video'),
+        url: mediaUrl
     };
     
     if (type === 'image') {

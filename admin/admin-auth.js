@@ -1,9 +1,11 @@
 // Admin Authentication Module
 
-// API Configuration
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-    ? 'http://localhost:3000/api' 
-    : '/api';
+// API Configuration (check if already defined)
+if (typeof API_BASE_URL === 'undefined') {
+    var API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:3000/api' 
+        : '/api';
+}
 
 // Simple MD5 hash function for password verification
 function md5(string) {
