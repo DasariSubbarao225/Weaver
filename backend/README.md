@@ -99,7 +99,20 @@ Content is stored in `backend/data/content.json`. This file is automatically cre
 
 ## CORS Configuration
 
-The server is configured with CORS enabled for all origins to support local development. For production deployment, you should configure CORS to only allow your specific domain.
+The server is configured with CORS enabled for all origins to support local development. 
+
+**⚠️ Security Warning**: For production deployment, you should configure CORS to only allow your specific domain(s):
+
+```javascript
+app.use(cors({ 
+  origin: process.env.ALLOWED_ORIGINS || 'https://yourdomain.com' 
+}));
+```
+
+Or use environment variables:
+```bash
+ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com npm start
+```
 
 ## Error Handling
 

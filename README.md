@@ -100,12 +100,6 @@ Weaver/
 │       └── deploy.yml     # GitHub Actions deployment workflow
 └── README.md              # Project documentation
 ```
-│   └── admin-config.json  # Admin settings
-├── .github/
-│   └── workflows/
-│       └── deploy.yml     # GitHub Actions deployment workflow
-└── README.md              # Project documentation
-```
 
 ## 🎨 Customization
 
