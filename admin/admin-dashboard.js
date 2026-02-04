@@ -1,6 +1,6 @@
 // Admin Dashboard Module
 
-// API_BASE_URL is defined in admin-auth.js
+// API_BASE_URL is defined in admin-auth.js which is loaded before this script
 
 // Default site configuration
 const DEFAULT_SITE_CONFIG = {

@@ -3,7 +3,6 @@
 
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 
@@ -13,8 +12,8 @@ const CONTENT_FILE = path.join(__dirname, 'data', 'content.json');
 
 // Middleware
 app.use(cors()); // Enable CORS for all routes (for development)
-app.use(bodyParser.json({ limit: '10mb' })); // Parse JSON bodies with larger limit for base64 images
-app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '10mb' })); // Parse JSON bodies with larger limit for base64 images
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -170,7 +169,7 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log('=================================================');
     console.log('  Weaver Interiors Backend Server');
     console.log('=================================================');
