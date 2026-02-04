@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const fs = require('fs');
+const fs = require('fs').promises;
+const fsSync = require('fs');
 const path = require('path');
 
 const app = express();
@@ -11,20 +12,45 @@ const PORT = process.env.PORT || 3000;
 const dataDir = path.join(__dirname, 'data');
 const uploadsDir = path.join(__dirname, 'uploads');
 
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+if (!fsSync.existsSync(dataDir)) {
+    fsSync.mkdirSync(dataDir, { recursive: true });
 }
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fsSync.existsSync(uploadsDir)) {
+    fsSync.mkdirSync(uploadsDir, { recursive: true });
 }
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'production' 
+        ? process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:8000']
+        : '*',
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(uploadsDir));
+
+// File type validation
+const imageFileFilter = (req, file, cb) => {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.'), false);
+    }
+};
+
+const videoFileFilter = (req, file, cb) => {
+    const allowedMimeTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Invalid file type. Only MP4, WebM, and OGG videos are allowed.'), false);
+    }
+};
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -37,14 +63,21 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ 
+const imageUpload = multer({ 
     storage: storage,
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit for images
+    fileFilter: imageFileFilter
+});
+
+const videoUpload = multer({ 
+    storage: storage,
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for videos
+    fileFilter: videoFileFilter
 });
 
 // Initialize content.json if it doesn't exist
 const contentPath = path.join(dataDir, 'content.json');
-if (!fs.existsSync(contentPath)) {
+if (!fsSync.existsSync(contentPath)) {
     const defaultContent = {
         site: {
             name: "Weaver Interiors",
@@ -119,16 +152,42 @@ if (!fs.existsSync(contentPath)) {
             passwordHash: "5f4dcc3b5aa765d61d8327deb882cf99" // MD5 of "password"
         }
     };
-    fs.writeFileSync(contentPath, JSON.stringify(defaultContent, null, 2));
+    fsSync.writeFileSync(contentPath, JSON.stringify(defaultContent, null, 2));
 }
+
+// Simple authentication middleware (for demo purposes - use proper JWT in production)
+const simpleAuth = async (req, res, next) => {
+    // For this demo implementation, we'll check for a simple auth header
+    // In production, implement proper JWT or session-based authentication
+    const authHeader = req.headers.authorization;
+    
+    // Allow unauthenticated GET requests for public content
+    if (req.method === 'GET' && req.path === '/api/content') {
+        // Remove admin section from public content
+        next();
+        return;
+    }
+    
+    // For now, allow all POST requests (implement proper auth in production)
+    // TODO: Implement proper authentication with JWT tokens
+    next();
+};
 
 // API Routes
 
 // Get all content
-app.get('/api/content', (req, res) => {
+app.get('/api/content', async (req, res) => {
     try {
-        const content = JSON.parse(fs.readFileSync(contentPath, 'utf8'));
-        res.json(content);
+        const data = await fs.readFile(contentPath, 'utf8');
+        const content = JSON.parse(data);
+        
+        // Remove admin password hash from public API response
+        const publicContent = { ...content };
+        if (publicContent.admin) {
+            delete publicContent.admin.passwordHash;
+        }
+        
+        res.json(publicContent);
     } catch (error) {
         console.error('Error reading content:', error);
         res.status(500).json({ error: 'Failed to load content' });
@@ -136,10 +195,10 @@ app.get('/api/content', (req, res) => {
 });
 
 // Update content
-app.post('/api/content', (req, res) => {
+app.post('/api/content', simpleAuth, async (req, res) => {
     try {
         const content = req.body;
-        fs.writeFileSync(contentPath, JSON.stringify(content, null, 2));
+        await fs.writeFile(contentPath, JSON.stringify(content, null, 2));
         res.json({ success: true, message: 'Content updated successfully' });
     } catch (error) {
         console.error('Error saving content:', error);
@@ -148,7 +207,7 @@ app.post('/api/content', (req, res) => {
 });
 
 // Upload image
-app.post('/api/upload/image', upload.single('image'), (req, res) => {
+app.post('/api/upload/image', simpleAuth, imageUpload.single('image'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
@@ -167,7 +226,7 @@ app.post('/api/upload/image', upload.single('image'), (req, res) => {
 });
 
 // Upload video
-app.post('/api/upload/video', upload.single('video'), (req, res) => {
+app.post('/api/upload/video', simpleAuth, videoUpload.single('video'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
@@ -186,9 +245,9 @@ app.post('/api/upload/video', upload.single('video'), (req, res) => {
 });
 
 // Get uploaded files list
-app.get('/api/uploads', (req, res) => {
+app.get('/api/uploads', async (req, res) => {
     try {
-        const files = fs.readdirSync(uploadsDir);
+        const files = await fs.readdir(uploadsDir);
         const fileList = files.map(filename => ({
             filename,
             url: `/uploads/${filename}`,

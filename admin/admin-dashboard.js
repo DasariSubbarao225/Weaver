@@ -792,20 +792,6 @@ function openMediaModal(type) {
         });
     }
     
-    // Clear URL when file is selected
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length) {
-            urlInput.value = '';
-        }
-    });
-    
-    // Clear file when URL is entered
-    urlInput.addEventListener('input', () => {
-        if (urlInput.value) {
-            fileInput.value = '';
-        }
-    });
-    
     modal.classList.add('active');
     modal.dataset.type = type === 'image' ? 'media-image' : 'media-video';
 }
@@ -979,7 +965,9 @@ async function saveMedia(type) {
             }
             
             const result = await response.json();
-            mediaUrl = `${window.location.protocol}//${window.location.hostname}:3000${result.url}`;
+            // Construct the media URL based on the current API_BASE_URL
+            const baseUrl = API_BASE_URL.replace('/api', '');
+            mediaUrl = `${baseUrl}${result.url}`;
             
             progressBar.style.width = '100%';
             statusText.textContent = 'Upload complete!';
