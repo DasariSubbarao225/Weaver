@@ -1,6 +1,13 @@
 // Admin Dashboard Module
 
-// Site configuration storage key
+// API Configuration (check if already defined in admin-auth.js)
+if (typeof API_BASE_URL === 'undefined') {
+    var API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:3000/api' 
+        : '/api';
+}
+
+// Site configuration storage key (kept for backward compatibility)
 const SITE_CONFIG_KEY = 'weaver_site_config';
 
 // Default site configuration
@@ -75,23 +82,54 @@ const DEFAULT_SITE_CONFIG = {
     }
 };
 
-// Get site configuration
-function getSiteConfig() {
-    const stored = localStorage.getItem(SITE_CONFIG_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Error parsing site config:', e);
+// Get site configuration from backend
+async function getSiteConfig() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/content`);
+        if (!response.ok) {
+            throw new Error('Failed to load content from server');
         }
+        return await response.json();
+    } catch (e) {
+        console.error('Error loading site config from backend:', e);
+        // Fallback to localStorage for backward compatibility
+        const stored = localStorage.getItem(SITE_CONFIG_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (err) {
+                console.error('Error parsing localStorage config:', err);
+            }
+        }
+        return DEFAULT_SITE_CONFIG;
     }
-    return DEFAULT_SITE_CONFIG;
 }
 
-// Save site configuration
-function saveSiteConfig(config) {
-    localStorage.setItem(SITE_CONFIG_KEY, JSON.stringify(config));
-    showToast('Configuration saved successfully!', 'success');
+// Save site configuration to backend
+async function saveSiteConfig(config) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/content`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(config)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save content to server');
+        }
+        
+        const result = await response.json();
+        showToast('Configuration saved successfully!', 'success');
+        return result;
+    } catch (e) {
+        console.error('Error saving site config to backend:', e);
+        showToast('Error saving configuration: ' + e.message, 'error');
+        // Fallback to localStorage
+        localStorage.setItem(SITE_CONFIG_KEY, JSON.stringify(config));
+        throw e;
+    }
 }
 
 // Show toast notification
@@ -113,10 +151,10 @@ function generateId() {
 }
 
 // Initialize dashboard
-function initDashboard() {
+async function initDashboard() {
     if (!window.location.pathname.includes('dashboard.html')) return;
     
-    const config = getSiteConfig();
+    const config = await getSiteConfig();
     
     // Update admin username display
     const adminUsernameDisplay = document.getElementById('adminUsername');
@@ -453,11 +491,11 @@ function editService(service) {
 }
 
 // Delete service
-function deleteService(id) {
+async function deleteService(id) {
     if (confirm('Are you sure you want to delete this service?')) {
-        const config = getSiteConfig();
+        const config = await getSiteConfig();
         config.services.items = config.services.items.filter(s => s.id !== id);
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
         loadServices(config);
         updateDashboardCounters(config);
     }
@@ -552,11 +590,11 @@ function editPortfolioItem(item) {
 }
 
 // Delete portfolio item
-function deletePortfolioItem(id) {
+async function deletePortfolioItem(id) {
     if (confirm('Are you sure you want to delete this portfolio item?')) {
-        const config = getSiteConfig();
+        const config = await getSiteConfig();
         config.portfolio.items = config.portfolio.items.filter(p => p.id !== id);
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
         loadPortfolio(config);
         updateDashboardCounters(config);
     }
@@ -652,15 +690,15 @@ function copyToClipboard(text) {
 }
 
 // Delete media
-function deleteMedia(id, type) {
+async function deleteMedia(id, type) {
     if (confirm('Are you sure you want to delete this media item?')) {
-        const config = getSiteConfig();
+        const config = await getSiteConfig();
         if (type === 'image') {
             config.media.images = config.media.images.filter(m => m.id !== id);
         } else {
             config.media.videos = config.media.videos.filter(m => m.id !== id);
         }
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
         loadMedia(config);
         updateDashboardCounters(config);
     }
@@ -689,24 +727,55 @@ function openMediaModal(type) {
             <input type="text" id="mediaName" placeholder="${type === 'image' ? 'Image name' : 'Video name'}">
         </div>
         <div class="form-group">
-            <label for="mediaUrl">URL</label>
+            <label>Upload File</label>
+            <input type="file" id="mediaFile" accept="${type === 'image' ? 'image/*' : 'video/*'}" style="width: 100%; padding: 8px; background: #16213e; border: 1px solid #2c3e50; border-radius: 8px; color: #e0e0e0;">
+            <small style="color: #888; display: block; margin-top: 5px;">Or enter a URL below instead</small>
+        </div>
+        <div class="form-group">
+            <label for="mediaUrl">URL (Alternative)</label>
             <input type="text" id="mediaUrl" placeholder="${type === 'image' ? 'Image URL (https://...)' : 'Video URL (YouTube, Vimeo, etc.)'}">
         </div>
         ${type === 'image' ? `
         <div class="form-group">
             <label>Preview</label>
             <div id="imagePreview" style="height: 150px; background: #16213e; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #888;">
-                Enter URL to preview
+                Upload a file or enter URL to preview
             </div>
         </div>
         ` : ''}
+        <div id="uploadProgress" style="display: none; margin-top: 10px;">
+            <div style="background: #16213e; border-radius: 8px; height: 20px; overflow: hidden;">
+                <div id="uploadProgressBar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
+            </div>
+            <small id="uploadStatus" style="color: #888; display: block; margin-top: 5px;"></small>
+        </div>
     `;
     
-    // Image preview functionality
+    // File upload and preview functionality
+    const fileInput = modalBody.querySelector('#mediaFile');
+    const urlInput = modalBody.querySelector('#mediaUrl');
+    
     if (type === 'image') {
-        const urlInput = modalBody.querySelector('#mediaUrl');
         const preview = modalBody.querySelector('#imagePreview');
         
+        // File preview
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    preview.style.backgroundImage = `url('${event.target.result}')`;
+                    preview.style.backgroundSize = 'cover';
+                    preview.style.backgroundPosition = 'center';
+                    preview.textContent = '';
+                };
+                reader.readAsDataURL(file);
+                // Clear URL input when file is selected
+                urlInput.value = '';
+            }
+        });
+        
+        // URL preview
         urlInput.addEventListener('input', () => {
             const url = urlInput.value;
             if (url) {
@@ -714,9 +783,11 @@ function openMediaModal(type) {
                 preview.style.backgroundSize = 'cover';
                 preview.style.backgroundPosition = 'center';
                 preview.textContent = '';
-            } else {
+                // Clear file input when URL is entered
+                fileInput.value = '';
+            } else if (!fileInput.files.length) {
                 preview.style.backgroundImage = '';
-                preview.textContent = 'Enter URL to preview';
+                preview.textContent = 'Upload a file or enter URL to preview';
             }
         });
     }
@@ -788,7 +859,7 @@ function initModals() {
 }
 
 // Save service
-function saveService(editId) {
+async function saveService(editId) {
     const title = document.getElementById('serviceTitle').value;
     const description = document.getElementById('serviceDescription').value;
     
@@ -797,7 +868,7 @@ function saveService(editId) {
         return;
     }
     
-    const config = getSiteConfig();
+    const config = await getSiteConfig();
     
     if (editId) {
         const index = config.services.items.findIndex(s => s.id == editId);
@@ -812,13 +883,13 @@ function saveService(editId) {
         });
     }
     
-    saveSiteConfig(config);
+    await saveSiteConfig(config);
     loadServices(config);
     updateDashboardCounters(config);
 }
 
 // Save portfolio item
-function savePortfolioItem(editId) {
+async function savePortfolioItem(editId) {
     const title = document.getElementById('portfolioTitle').value;
     const description = document.getElementById('portfolioDescription').value;
     const image = document.getElementById('portfolioImage').value;
@@ -830,7 +901,7 @@ function savePortfolioItem(editId) {
         return;
     }
     
-    const config = getSiteConfig();
+    const config = await getSiteConfig();
     
     const portfolioItem = {
         id: editId || generateId(),
@@ -850,27 +921,75 @@ function savePortfolioItem(editId) {
         config.portfolio.items.push(portfolioItem);
     }
     
-    saveSiteConfig(config);
+    await saveSiteConfig(config);
     loadPortfolio(config);
     updateDashboardCounters(config);
 }
 
 // Save media
-function saveMedia(type) {
+async function saveMedia(type) {
     const name = document.getElementById('mediaName').value;
     const url = document.getElementById('mediaUrl').value;
+    const fileInput = document.getElementById('mediaFile');
+    const file = fileInput?.files[0];
     
-    if (!url) {
-        showToast('Please enter a URL', 'error');
+    // Check if either file or URL is provided
+    if (!file && !url) {
+        showToast('Please upload a file or enter a URL', 'error');
         return;
     }
     
-    const config = getSiteConfig();
+    let mediaUrl = url;
+    
+    // If file is uploaded, send it to backend
+    if (file) {
+        try {
+            const progressDiv = document.getElementById('uploadProgress');
+            const progressBar = document.getElementById('uploadProgressBar');
+            const statusText = document.getElementById('uploadStatus');
+            
+            progressDiv.style.display = 'block';
+            statusText.textContent = 'Uploading...';
+            progressBar.style.width = '50%';
+            
+            const formData = new FormData();
+            formData.append(type === 'image' ? 'image' : 'video', file);
+            
+            const response = await fetch(`${API_BASE_URL}/upload/${type === 'image' ? 'image' : 'video'}`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+            
+            const result = await response.json();
+            // Construct the media URL based on the current API_BASE_URL
+            const baseUrl = API_BASE_URL.replace('/api', '');
+            mediaUrl = `${baseUrl}${result.url}`;
+            
+            progressBar.style.width = '100%';
+            statusText.textContent = 'Upload complete!';
+            
+            setTimeout(() => {
+                progressDiv.style.display = 'none';
+                progressBar.style.width = '0%';
+            }, 1000);
+            
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            showToast('Failed to upload file: ' + error.message, 'error');
+            return;
+        }
+    }
+    
+    const config = await getSiteConfig();
     
     const mediaItem = {
         id: generateId(),
-        name: name || (type === 'image' ? 'Image' : 'Video'),
-        url
+        name: name || file?.name || (type === 'image' ? 'Image' : 'Video'),
+        url: mediaUrl
     };
     
     if (type === 'image') {
@@ -881,7 +1000,7 @@ function saveMedia(type) {
         config.media.videos.push(mediaItem);
     }
     
-    saveSiteConfig(config);
+    await saveSiteConfig(config);
     loadMedia(config);
     updateDashboardCounters(config);
 }
@@ -913,8 +1032,8 @@ function initQuickActions() {
 // Initialize save buttons
 function initSaveButtons() {
     // Save content button
-    document.getElementById('saveContentBtn')?.addEventListener('click', () => {
-        const config = getSiteConfig();
+    document.getElementById('saveContentBtn')?.addEventListener('click', async () => {
+        const config = await getSiteConfig();
         
         // Site Info
         config.site.name = document.getElementById('siteName').value;
@@ -965,12 +1084,12 @@ function initSaveButtons() {
         // Portfolio section title  
         config.portfolio.title = document.getElementById('portfolioSectionTitle').value;
         
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
     });
     
     // Save settings button
-    document.getElementById('saveSettingsBtn')?.addEventListener('click', () => {
-        const config = getSiteConfig();
+    document.getElementById('saveSettingsBtn')?.addEventListener('click', async () => {
+        const config = await getSiteConfig();
         
         // Theme colors
         config.settings = config.settings || {};
@@ -988,18 +1107,23 @@ function initSaveButtons() {
         }
         
         if (newUsername || newPassword) {
-            updateCredentials(newUsername, newPassword);
+            config.admin = config.admin || {};
+            config.admin.username = newUsername;
+            if (newPassword) {
+                // Assume md5 function is available from admin-auth.js
+                config.admin.passwordHash = typeof md5 === 'function' ? md5(newPassword) : newPassword;
+            }
         }
         
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
     });
 }
 
 // Initialize export/import
 function initExportImport() {
     // Export config
-    document.getElementById('exportConfigBtn')?.addEventListener('click', () => {
-        const config = getSiteConfig();
+    document.getElementById('exportConfigBtn')?.addEventListener('click', async () => {
+        const config = await getSiteConfig();
         const dataStr = JSON.stringify(config, null, 2);
         const dataBlob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(dataBlob);
@@ -1021,14 +1145,14 @@ function initExportImport() {
         importFile.click();
     });
     
-    importFile?.addEventListener('change', (e) => {
+    importFile?.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = async (event) => {
                 try {
                     const config = JSON.parse(event.target.result);
-                    saveSiteConfig(config);
+                    await saveSiteConfig(config);
                     showToast('Configuration imported successfully!');
                     
                     // Reload all sections

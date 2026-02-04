@@ -34,3 +34,8 @@ temp/
 
 # Operating System files
 Thumbs.db
+
+# Backend data and uploads (will be created at runtime)
+backend/data/content.json
+backend/uploads/*
+!backend/uploads/.gitkeep
