@@ -1,7 +1,6 @@
 // Admin Dashboard Module
 
-// API configuration
-const API_BASE_URL = 'http://localhost:3000';
+// API_BASE_URL is defined in admin-auth.js
 
 // Default site configuration
 const DEFAULT_SITE_CONFIG = {
