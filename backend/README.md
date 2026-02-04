@@ -12,7 +12,7 @@ Backend server for Weaver Interiors website content management.
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v18 LTS or higher)
 - npm or yarn
 
 ## Installation
@@ -118,7 +118,8 @@ ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com npm start
 
 All endpoints include comprehensive error handling and return appropriate HTTP status codes:
 - 200: Success
-- 400: Bad Request
+- 400: Bad Request (invalid input, missing required fields)
+- 413: Payload Too Large (content exceeds 10MB limit)
 - 500: Internal Server Error
 
 ## Future Enhancements

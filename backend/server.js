@@ -143,22 +143,33 @@ app.post('/api/content', async (req, res) => {
             });
         }
         
-        // Validate data types for critical fields
-        if (typeof content.site !== 'object' || 
-            typeof content.hero !== 'object' || 
-            typeof content.about !== 'object' ||
-            typeof content.services !== 'object' || 
-            typeof content.portfolio !== 'object' || 
-            typeof content.contact !== 'object' ||
-            typeof content.media !== 'object') {
+        // Validate data types for critical fields (check for null and object type)
+        if (content.site === null || typeof content.site !== 'object' || 
+            content.hero === null || typeof content.hero !== 'object' || 
+            content.about === null || typeof content.about !== 'object' ||
+            content.services === null || typeof content.services !== 'object' || 
+            content.portfolio === null || typeof content.portfolio !== 'object' || 
+            content.contact === null || typeof content.contact !== 'object' ||
+            content.media === null || typeof content.media !== 'object') {
             return res.status(400).json({ 
                 error: 'Invalid content structure', 
-                message: 'Required fields must be objects' 
+                message: 'Required fields must be objects and cannot be null' 
+            });
+        }
+        
+        // Validate content size before writing
+        const contentJson = JSON.stringify(content, null, 2);
+        const contentSizeInMB = Buffer.byteLength(contentJson, 'utf8') / (1024 * 1024);
+        
+        if (contentSizeInMB > 10) {
+            return res.status(413).json({ 
+                error: 'Content too large', 
+                message: `Content size (${contentSizeInMB.toFixed(2)}MB) exceeds maximum allowed size of 10MB` 
             });
         }
         
         // Write content to file
-        await fs.writeFile(DATA_FILE, JSON.stringify(content, null, 2));
+        await fs.writeFile(DATA_FILE, contentJson);
         res.json({ success: true, message: 'Content saved successfully' });
         console.log('Content saved successfully');
     } catch (error) {
