@@ -39,6 +39,15 @@
 
         <!-- Dashboard Section -->
         <section id="dashboardSection" class="admin-section active">
+            <!-- Storage Info Banner -->
+            <div class="info-banner">
+                <div class="info-banner-icon">💾</div>
+                <div class="info-banner-content">
+                    <strong>Data Storage Location:</strong> All admin changes, images, and videos are stored in your browser's localStorage. 
+                    This data is specific to this browser and device. Use the Export/Import feature in Settings to backup or transfer your data.
+                </div>
+            </div>
+            
             <div class="dashboard-cards">
                 <div class="dashboard-card">
                     <div class="card-icon">📝</div>
@@ -235,6 +244,14 @@
                 </div>
             </div>
             
+            <!-- Media Storage Notice -->
+            <div class="notice-box">
+                <strong>📁 Storage Information:</strong>
+                <p>Images and videos are stored as URLs in your browser's localStorage. Only the URLs are saved, not the actual files. 
+                For portfolio images, you can upload images to free hosting services like <a href="https://imgur.com" target="_blank">Imgur</a>, 
+                <a href="https://cloudinary.com" target="_blank">Cloudinary</a>, or store them in your repository and use relative paths.</p>
+            </div>
+            
             <div class="media-tabs">
                 <button class="tab-btn active" data-media-tab="images">Images</button>
                 <button class="tab-btn" data-media-tab="videos">Videos</button>
@@ -307,10 +324,40 @@
 
                 <div class="form-card full-width">
                     <h3>📤 Export/Import Configuration</h3>
+                    <p class="form-description">Backup or transfer your site configuration including all content, services, portfolio items, and media URLs.</p>
                     <div class="export-import-btns">
                         <button id="exportConfigBtn" class="btn btn-admin-secondary">📥 Export Config</button>
                         <button id="importConfigBtn" class="btn btn-admin-secondary">📤 Import Config</button>
                         <input type="file" id="importConfigFile" accept=".json" style="display: none;">
+                    </div>
+                </div>
+                
+                <div class="form-card full-width info-card">
+                    <h3>💾 Data Storage Information</h3>
+                    <div class="storage-info">
+                        <p><strong>Where is my data stored?</strong></p>
+                        <ul>
+                            <li>All admin changes, configurations, and media URLs are stored in your browser's <strong>localStorage</strong></li>
+                            <li>Data is specific to this browser and device only</li>
+                            <li>No data is uploaded to any server or cloud storage</li>
+                            <li>Images and videos are stored as URLs only - the actual files are not stored</li>
+                        </ul>
+                        
+                        <p><strong>Important Notes:</strong></p>
+                        <ul>
+                            <li>📱 Data is NOT synced across different browsers or devices</li>
+                            <li>🔄 Clearing browser data will delete all your configurations</li>
+                            <li>💾 Use Export feature regularly to backup your data</li>
+                            <li>🌐 Use Import feature to restore or transfer data to another browser</li>
+                        </ul>
+                        
+                        <p><strong>Image and Video Storage:</strong></p>
+                        <ul>
+                            <li>Only URLs are stored in localStorage, not the actual media files</li>
+                            <li>Upload images to: <a href="https://imgur.com" target="_blank">Imgur</a>, <a href="https://cloudinary.com" target="_blank">Cloudinary</a>, or your repository</li>
+                            <li>For videos: use YouTube, Vimeo, or other video hosting platforms</li>
+                            <li>Recommended: Store images in your GitHub repository under an <code>/images</code> folder</li>
+                        </ul>
                     </div>
                 </div>
             </div>
