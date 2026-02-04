@@ -12,6 +12,31 @@ A modern, responsive interior design website showcasing services, portfolio, and
 - **Services Section**: Comprehensive list of interior design services
 - **About Section**: Company information with key features
 - **GitHub Pages Deployment**: Automated deployment workflow
+- **🆕 Admin Panel**: Configurable admin dashboard for content management
+
+## 🔧 Admin Panel
+
+### Accessing the Admin Panel
+
+1. Navigate to `/admin/` or click "Admin Panel" in the footer
+2. Login with default credentials:
+   - **Username**: admin
+   - **Password**: password
+
+### Admin Features
+
+- **📊 Dashboard**: Overview of all site content with quick access buttons
+- **📝 Content Editor**: Edit site info, hero section, about section, and contact details
+- **🛠️ Services Manager**: Add, edit, and delete services
+- **🖼️ Portfolio Manager**: Manage portfolio items with image/video support
+- **📷 Media Library**: Store and manage images and video URLs
+- **⚙️ Settings**: Configure theme colors and admin credentials
+
+### Configuration Storage
+
+The admin panel stores all configuration in the browser's localStorage. You can:
+- **Export**: Download your configuration as a JSON file for backup
+- **Import**: Restore configuration from a previously exported JSON file
 
 ## 🚀 Quick Start
 
@@ -46,6 +71,15 @@ Weaver/
 │   └── styles.css         # Stylesheet with responsive design
 ├── js/
 │   └── script.js          # JavaScript for interactivity
+├── admin/                  # Admin panel
+│   ├── index.html         # Admin login page
+│   ├── dashboard.html     # Admin dashboard
+│   ├── admin-styles.css   # Admin panel styles
+│   ├── admin-auth.js      # Authentication logic
+│   └── admin-dashboard.js # Dashboard functionality
+├── data/                   # Configuration files
+│   ├── site-config.json   # Site content configuration
+│   └── admin-config.json  # Admin settings
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml     # GitHub Actions deployment workflow
@@ -54,7 +88,15 @@ Weaver/
 
 ## 🎨 Customization
 
-### Colors
+### Using Admin Panel (Recommended)
+1. Login to the admin panel at `/admin/`
+2. Navigate to different sections to edit content
+3. Use the Settings page to change theme colors
+4. Save changes to see them reflected on the main site
+
+### Manual Customization
+
+#### Colors
 Edit the CSS variables in `css/styles.css`:
 ```css
 :root {
@@ -67,7 +109,7 @@ Edit the CSS variables in `css/styles.css`:
 }
 ```
 
-### Content
+#### Content
 - **Company Information**: Edit the text in `index.html`
 - **Services**: Modify the services section in `index.html`
 - **Portfolio Items**: Update the portfolio grid in `index.html`

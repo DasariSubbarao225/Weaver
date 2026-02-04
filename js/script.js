@@ -1,3 +1,184 @@
+// Site Configuration Loader
+const SITE_CONFIG_KEY = 'weaver_site_config';
+
+// HTML escape function to prevent XSS
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Load site configuration from localStorage
+function loadSiteConfig() {
+    const stored = localStorage.getItem(SITE_CONFIG_KEY);
+    if (stored) {
+        try {
+            return JSON.parse(stored);
+        } catch (e) {
+            console.error('Error loading site config:', e);
+        }
+    }
+    return null;
+}
+
+// Apply site configuration to the page
+function applySiteConfig() {
+    const config = loadSiteConfig();
+    if (!config) return;
+
+    // Apply site name and description
+    if (config.site) {
+        const navBrand = document.querySelector('.nav-brand h1');
+        if (navBrand && config.site.name) navBrand.textContent = config.site.name;
+        
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc && config.site.description) metaDesc.setAttribute('content', config.site.description);
+        
+        const footerText = document.querySelector('.footer p:last-child');
+        if (footerText && config.site.tagline) footerText.textContent = config.site.tagline;
+    }
+
+    // Apply hero section
+    if (config.hero) {
+        const heroTitle = document.querySelector('.hero-title');
+        const heroSubtitle = document.querySelector('.hero-subtitle');
+        const heroBtn = document.querySelector('.hero .btn-primary');
+        const heroSection = document.querySelector('.hero');
+        
+        if (heroTitle && config.hero.title) heroTitle.textContent = config.hero.title;
+        if (heroSubtitle && config.hero.subtitle) heroSubtitle.textContent = config.hero.subtitle;
+        if (heroBtn) {
+            if (config.hero.buttonText) heroBtn.textContent = config.hero.buttonText;
+            if (config.hero.buttonLink) heroBtn.setAttribute('href', config.hero.buttonLink);
+        }
+        if (heroSection && config.hero.backgroundImage) {
+            heroSection.style.background = `url('${escapeHtml(config.hero.backgroundImage)}') center/cover no-repeat`;
+        }
+    }
+
+    // Apply about section
+    if (config.about) {
+        const aboutTitle = document.querySelector('.about .section-title');
+        const aboutText = document.querySelector('.about-text');
+        const featuresContainer = document.querySelector('.about-features');
+        
+        if (aboutTitle && config.about.title) aboutTitle.textContent = config.about.title;
+        
+        if (aboutText && config.about.paragraphs) {
+            aboutText.innerHTML = config.about.paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+        }
+        
+        if (featuresContainer && config.about.features) {
+            featuresContainer.innerHTML = config.about.features.map(f => `
+                <div class="feature">
+                    <div class="feature-icon">${escapeHtml(f.icon)}</div>
+                    <h3>${escapeHtml(f.title)}</h3>
+                    <p>${escapeHtml(f.description)}</p>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Apply services section
+    if (config.services) {
+        const servicesTitle = document.querySelector('.services .section-title');
+        const servicesGrid = document.querySelector('.services-grid');
+        
+        if (servicesTitle && config.services.title) servicesTitle.textContent = config.services.title;
+        
+        if (servicesGrid && config.services.items) {
+            servicesGrid.innerHTML = config.services.items.map(s => `
+                <div class="service-card">
+                    <h3>${escapeHtml(s.title)}</h3>
+                    <p>${escapeHtml(s.description)}</p>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Apply portfolio section
+    if (config.portfolio) {
+        const portfolioTitle = document.querySelector('.portfolio .section-title');
+        const portfolioGrid = document.querySelector('.portfolio-grid');
+        
+        if (portfolioTitle && config.portfolio.title) portfolioTitle.textContent = config.portfolio.title;
+        
+        if (portfolioGrid && config.portfolio.items) {
+            portfolioGrid.innerHTML = config.portfolio.items.map(p => {
+                const bgStyle = p.image 
+                    ? `background-image: url('${escapeHtml(p.image)}')`
+                    : `background: ${escapeHtml(p.gradient) || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}`;
+                
+                return `
+                    <div class="portfolio-item" ${p.videoUrl ? `data-video="${escapeHtml(p.videoUrl)}"` : ''}>
+                        <div class="portfolio-image" style="${bgStyle}">
+                            ${p.videoUrl ? '<span class="video-indicator">🎬</span>' : ''}
+                        </div>
+                        <div class="portfolio-info">
+                            <h3>${escapeHtml(p.title)}</h3>
+                            <p>${escapeHtml(p.description)}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Re-initialize portfolio click handlers
+            initPortfolioHandlers();
+        }
+    }
+
+    // Apply contact section
+    if (config.contact) {
+        const contactTitle = document.querySelector('.contact .section-title');
+        const contactInfo = document.querySelector('.contact-info');
+        
+        if (contactTitle && config.contact.title) contactTitle.textContent = config.contact.title;
+        
+        if (contactInfo) {
+            contactInfo.innerHTML = `
+                <h3>Contact Information</h3>
+                <p>📞 Phone: ${escapeHtml(config.contact.phone)}</p>
+                <p>📧 Email: ${escapeHtml(config.contact.email)}</p>
+                <p>📍 Address: ${escapeHtml(config.contact.address)}</p>
+                <div class="business-hours">
+                    <h4>${escapeHtml(config.contact.businessHours?.title) || 'Business Hours'}</h4>
+                    ${(config.contact.businessHours?.hours || []).map(h => `<p>${escapeHtml(h)}</p>`).join('')}
+                </div>
+            `;
+        }
+    }
+
+    // Apply theme settings
+    if (config.settings) {
+        const root = document.documentElement;
+        if (config.settings.primaryColor) {
+            root.style.setProperty('--primary-color', config.settings.primaryColor);
+        }
+        if (config.settings.secondaryColor) {
+            root.style.setProperty('--secondary-color', config.settings.secondaryColor);
+        }
+    }
+}
+
+// Initialize portfolio click handlers
+function initPortfolioHandlers() {
+    const portfolioItems = document.querySelectorAll('.portfolio-item');
+    portfolioItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const videoUrl = item.dataset.video;
+            const title = item.querySelector('h3').textContent;
+            
+            if (videoUrl) {
+                // Open video in modal or new tab
+                window.open(videoUrl, '_blank');
+            } else {
+                alert(`Project: ${title}\n\nClick to view full portfolio details (feature coming soon!)`);
+            }
+        });
+    });
+}
+
 // Mobile Navigation Toggle
 const hamburger = document.getElementById('hamburger');
 const navMenu = document.getElementById('navMenu');
@@ -152,8 +333,14 @@ window.addEventListener('scroll', () => {
 const portfolioItems = document.querySelectorAll('.portfolio-item');
 portfolioItems.forEach(item => {
     item.addEventListener('click', () => {
+        const videoUrl = item.dataset?.video;
         const title = item.querySelector('h3').textContent;
-        alert(`Project: ${title}\n\nClick to view full portfolio details (feature coming soon!)`);
+        
+        if (videoUrl) {
+            window.open(videoUrl, '_blank');
+        } else {
+            alert(`Project: ${title}\n\nClick to view full portfolio details (feature coming soon!)`);
+        }
     });
 });
 
@@ -174,4 +361,9 @@ window.addEventListener('scroll', () => {
 
 // Log initialization
 console.log('Weaver Interiors - Website Initialized');
-console.log('Version: 1.0.0');
+console.log('Version: 1.1.0');
+
+// Apply site configuration on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    applySiteConfig();
+});
