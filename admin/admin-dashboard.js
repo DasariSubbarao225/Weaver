@@ -1,6 +1,11 @@
 // Admin Dashboard Module
 
-// Site configuration storage key
+// API configuration
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : ''; // Use same origin in production
+
+// Site configuration storage key (deprecated - using API now)
 const SITE_CONFIG_KEY = 'weaver_site_config';
 
 // Default site configuration
@@ -75,23 +80,45 @@ const DEFAULT_SITE_CONFIG = {
     }
 };
 
-// Get site configuration
-function getSiteConfig() {
-    const stored = localStorage.getItem(SITE_CONFIG_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Error parsing site config:', e);
+// Get site configuration from backend API
+async function getSiteConfig() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/content`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const config = await response.json();
+        return config;
+    } catch (e) {
+        console.error('Error fetching site config from API:', e);
+        showToast('Failed to load configuration. Using default.', 'error');
+        return DEFAULT_SITE_CONFIG;
     }
-    return DEFAULT_SITE_CONFIG;
 }
 
-// Save site configuration
-function saveSiteConfig(config) {
-    localStorage.setItem(SITE_CONFIG_KEY, JSON.stringify(config));
-    showToast('Configuration saved successfully!', 'success');
+// Save site configuration to backend API
+async function saveSiteConfig(config) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/content`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(config)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        showToast('Configuration saved successfully!', 'success');
+        return result;
+    } catch (e) {
+        console.error('Error saving site config to API:', e);
+        showToast('Failed to save configuration. Please try again.', 'error');
+        throw e;
+    }
 }
 
 // Show toast notification
@@ -113,10 +140,10 @@ function generateId() {
 }
 
 // Initialize dashboard
-function initDashboard() {
+async function initDashboard() {
     if (!window.location.pathname.includes('dashboard.html')) return;
     
-    const config = getSiteConfig();
+    const config = await getSiteConfig();
     
     // Update admin username display
     const adminUsernameDisplay = document.getElementById('adminUsername');
@@ -453,11 +480,11 @@ function editService(service) {
 }
 
 // Delete service
-function deleteService(id) {
+async function deleteService(id) {
     if (confirm('Are you sure you want to delete this service?')) {
-        const config = getSiteConfig();
+        const config = await getSiteConfig();
         config.services.items = config.services.items.filter(s => s.id !== id);
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
         loadServices(config);
         updateDashboardCounters(config);
     }
@@ -552,11 +579,11 @@ function editPortfolioItem(item) {
 }
 
 // Delete portfolio item
-function deletePortfolioItem(id) {
+async function deletePortfolioItem(id) {
     if (confirm('Are you sure you want to delete this portfolio item?')) {
-        const config = getSiteConfig();
+        const config = await getSiteConfig();
         config.portfolio.items = config.portfolio.items.filter(p => p.id !== id);
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
         loadPortfolio(config);
         updateDashboardCounters(config);
     }
@@ -652,15 +679,15 @@ function copyToClipboard(text) {
 }
 
 // Delete media
-function deleteMedia(id, type) {
+async function deleteMedia(id, type) {
     if (confirm('Are you sure you want to delete this media item?')) {
-        const config = getSiteConfig();
+        const config = await getSiteConfig();
         if (type === 'image') {
             config.media.images = config.media.images.filter(m => m.id !== id);
         } else {
             config.media.videos = config.media.videos.filter(m => m.id !== id);
         }
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
         loadMedia(config);
         updateDashboardCounters(config);
     }
@@ -689,14 +716,19 @@ function openMediaModal(type) {
             <input type="text" id="mediaName" placeholder="${type === 'image' ? 'Image name' : 'Video name'}">
         </div>
         <div class="form-group">
-            <label for="mediaUrl">URL</label>
+            <label>Upload File</label>
+            <input type="file" id="mediaFile" accept="${type === 'image' ? 'image/*' : 'video/*'}" style="width: 100%; padding: 8px; border: 1px solid #0f3460; border-radius: 4px; background: #16213e; color: #e94560;">
+            <small style="color: #888; display: block; margin-top: 5px;">Or enter a URL below (for external images/videos)</small>
+        </div>
+        <div class="form-group">
+            <label for="mediaUrl">URL (Optional)</label>
             <input type="text" id="mediaUrl" placeholder="${type === 'image' ? 'Image URL (https://...)' : 'Video URL (YouTube, Vimeo, etc.)'}">
         </div>
         ${type === 'image' ? `
         <div class="form-group">
             <label>Preview</label>
             <div id="imagePreview" style="height: 150px; background: #16213e; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #888;">
-                Enter URL to preview
+                Upload or enter URL to preview
             </div>
         </div>
         ` : ''}
@@ -704,9 +736,26 @@ function openMediaModal(type) {
     
     // Image preview functionality
     if (type === 'image') {
+        const fileInput = modalBody.querySelector('#mediaFile');
         const urlInput = modalBody.querySelector('#mediaUrl');
         const preview = modalBody.querySelector('#imagePreview');
         
+        // File upload preview
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.style.backgroundImage = `url('${e.target.result}')`;
+                    preview.style.backgroundSize = 'cover';
+                    preview.style.backgroundPosition = 'center';
+                    preview.textContent = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // URL input preview
         urlInput.addEventListener('input', () => {
             const url = urlInput.value;
             if (url) {
@@ -714,9 +763,9 @@ function openMediaModal(type) {
                 preview.style.backgroundSize = 'cover';
                 preview.style.backgroundPosition = 'center';
                 preview.textContent = '';
-            } else {
+            } else if (!fileInput.files[0]) {
                 preview.style.backgroundImage = '';
-                preview.textContent = 'Enter URL to preview';
+                preview.textContent = 'Upload or enter URL to preview';
             }
         });
     }
@@ -788,7 +837,7 @@ function initModals() {
 }
 
 // Save service
-function saveService(editId) {
+async function saveService(editId) {
     const title = document.getElementById('serviceTitle').value;
     const description = document.getElementById('serviceDescription').value;
     
@@ -797,7 +846,7 @@ function saveService(editId) {
         return;
     }
     
-    const config = getSiteConfig();
+    const config = await getSiteConfig();
     
     if (editId) {
         const index = config.services.items.findIndex(s => s.id == editId);
@@ -812,13 +861,13 @@ function saveService(editId) {
         });
     }
     
-    saveSiteConfig(config);
+    await saveSiteConfig(config);
     loadServices(config);
     updateDashboardCounters(config);
 }
 
 // Save portfolio item
-function savePortfolioItem(editId) {
+async function savePortfolioItem(editId) {
     const title = document.getElementById('portfolioTitle').value;
     const description = document.getElementById('portfolioDescription').value;
     const image = document.getElementById('portfolioImage').value;
@@ -830,7 +879,7 @@ function savePortfolioItem(editId) {
         return;
     }
     
-    const config = getSiteConfig();
+    const config = await getSiteConfig();
     
     const portfolioItem = {
         id: editId || generateId(),
@@ -850,27 +899,60 @@ function savePortfolioItem(editId) {
         config.portfolio.items.push(portfolioItem);
     }
     
-    saveSiteConfig(config);
+    await saveSiteConfig(config);
     loadPortfolio(config);
     updateDashboardCounters(config);
 }
 
 // Save media
-function saveMedia(type) {
+async function saveMedia(type) {
     const name = document.getElementById('mediaName').value;
     const url = document.getElementById('mediaUrl').value;
+    const fileInput = document.getElementById('mediaFile');
+    const file = fileInput?.files[0];
     
-    if (!url) {
-        showToast('Please enter a URL', 'error');
+    // Check if either file or URL is provided
+    if (!file && !url) {
+        showToast('Please upload a file or enter a URL', 'error');
         return;
     }
     
-    const config = getSiteConfig();
+    let mediaUrl = url;
+    
+    // If a file is uploaded, send it to the server
+    if (file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch(`${API_BASE_URL}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            // Use the server URL (need to prepend API_BASE_URL for absolute path)
+            mediaUrl = API_BASE_URL + result.url;
+            
+            showToast('File uploaded successfully!', 'success');
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            showToast('Failed to upload file. Please try again.', 'error');
+            return;
+        }
+    }
+    
+    const config = await getSiteConfig();
     
     const mediaItem = {
         id: generateId(),
         name: name || (type === 'image' ? 'Image' : 'Video'),
-        url
+        url: mediaUrl
     };
     
     if (type === 'image') {
@@ -881,7 +963,7 @@ function saveMedia(type) {
         config.media.videos.push(mediaItem);
     }
     
-    saveSiteConfig(config);
+    await saveSiteConfig(config);
     loadMedia(config);
     updateDashboardCounters(config);
 }
@@ -913,8 +995,8 @@ function initQuickActions() {
 // Initialize save buttons
 function initSaveButtons() {
     // Save content button
-    document.getElementById('saveContentBtn')?.addEventListener('click', () => {
-        const config = getSiteConfig();
+    document.getElementById('saveContentBtn')?.addEventListener('click', async () => {
+        const config = await getSiteConfig();
         
         // Site Info
         config.site.name = document.getElementById('siteName').value;
@@ -965,12 +1047,12 @@ function initSaveButtons() {
         // Portfolio section title  
         config.portfolio.title = document.getElementById('portfolioSectionTitle').value;
         
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
     });
     
     // Save settings button
-    document.getElementById('saveSettingsBtn')?.addEventListener('click', () => {
-        const config = getSiteConfig();
+    document.getElementById('saveSettingsBtn')?.addEventListener('click', async () => {
+        const config = await getSiteConfig();
         
         // Theme colors
         config.settings = config.settings || {};
@@ -991,15 +1073,15 @@ function initSaveButtons() {
             updateCredentials(newUsername, newPassword);
         }
         
-        saveSiteConfig(config);
+        await saveSiteConfig(config);
     });
 }
 
 // Initialize export/import
 function initExportImport() {
     // Export config
-    document.getElementById('exportConfigBtn')?.addEventListener('click', () => {
-        const config = getSiteConfig();
+    document.getElementById('exportConfigBtn')?.addEventListener('click', async () => {
+        const config = await getSiteConfig();
         const dataStr = JSON.stringify(config, null, 2);
         const dataBlob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(dataBlob);
@@ -1021,14 +1103,14 @@ function initExportImport() {
         importFile.click();
     });
     
-    importFile?.addEventListener('change', (e) => {
+    importFile?.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = async (event) => {
                 try {
                     const config = JSON.parse(event.target.result);
-                    saveSiteConfig(config);
+                    await saveSiteConfig(config);
                     showToast('Configuration imported successfully!');
                     
                     // Reload all sections
