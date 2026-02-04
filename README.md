@@ -142,6 +142,35 @@ Replace the gradient backgrounds in portfolio items with actual images:
 <div class="portfolio-image" style="background-image: url('images/your-image.jpg');"></div>
 ```
 
+## 🧪 Testing
+
+### Backend API Testing
+
+1. **Test Health Endpoint**
+   ```bash
+   curl http://localhost:3000/api/health
+   ```
+
+2. **Test Content Retrieval**
+   ```bash
+   curl http://localhost:3000/api/content
+   ```
+
+3. **Test Content Update**
+   ```bash
+   curl -X POST http://localhost:3000/api/content \
+     -H "Content-Type: application/json" \
+     -d @backend/data/content.json
+   ```
+
+### Frontend Integration Testing
+
+1. **Start both servers** (backend on port 3000, frontend on port 8000)
+2. **Open the admin panel** at `http://localhost:8000/admin/`
+3. **Login** with credentials (admin/password)
+4. **Make changes** to content in the admin panel
+5. **Verify changes** are saved by refreshing the main site
+
 ## 🌐 Deployment
 
 ### GitHub Pages (Automatic)
@@ -183,9 +212,18 @@ Replace the gradient backgrounds in portfolio items with actual images:
 
 ## 🛠️ Technologies Used
 
+### Frontend
 - **HTML5**: Semantic markup
 - **CSS3**: Modern styling with flexbox and grid
 - **JavaScript (ES6+)**: Interactive features
+
+### Backend
+- **Node.js**: Runtime environment
+- **Express.js**: Web server framework
+- **CORS**: Cross-origin resource sharing
+- **File System API**: JSON-based data storage
+
+### Infrastructure
 - **GitHub Actions**: CI/CD automation
 
 ## 📱 Browser Support
