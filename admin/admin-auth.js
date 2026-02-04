@@ -1,5 +1,10 @@
 // Admin Authentication Module
 
+// API Configuration
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:3000/api' 
+    : '/api';
+
 // Simple MD5 hash function for password verification
 function md5(string) {
     function rotateLeft(value, shift) {
@@ -178,22 +183,57 @@ const DEFAULT_ADMIN = {
     passwordHash: '5f4dcc3b5aa765d61d8327deb882cf99' // MD5 of "password"
 };
 
-// Get admin config from localStorage or use default
-function getAdminConfig() {
-    const stored = localStorage.getItem(ADMIN_CONFIG_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Error parsing admin config:', e);
+// Get admin config from backend
+async function getAdminConfig() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/content`);
+        if (!response.ok) {
+            throw new Error('Failed to load content from server');
         }
+        const content = await response.json();
+        return { admin: content.admin || DEFAULT_ADMIN };
+    } catch (e) {
+        console.error('Error fetching admin config from backend:', e);
+        // Fallback to localStorage
+        const stored = localStorage.getItem(ADMIN_CONFIG_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (err) {
+                console.error('Error parsing admin config:', err);
+            }
+        }
+        return { admin: DEFAULT_ADMIN };
     }
-    return { admin: DEFAULT_ADMIN };
 }
 
-// Save admin config to localStorage
-function saveAdminConfig(config) {
-    localStorage.setItem(ADMIN_CONFIG_KEY, JSON.stringify(config));
+// Save admin config to backend
+async function saveAdminConfig(config) {
+    try {
+        // Get full content, update admin section, and save
+        const response = await fetch(`${API_BASE_URL}/content`);
+        if (!response.ok) {
+            throw new Error('Failed to load content from server');
+        }
+        const content = await response.json();
+        content.admin = config.admin;
+        
+        const saveResponse = await fetch(`${API_BASE_URL}/content`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(content)
+        });
+        
+        if (!saveResponse.ok) {
+            throw new Error('Failed to save admin config to server');
+        }
+    } catch (e) {
+        console.error('Error saving admin config to backend:', e);
+        // Fallback to localStorage
+        localStorage.setItem(ADMIN_CONFIG_KEY, JSON.stringify(config));
+    }
 }
 
 // Check if user is authenticated
@@ -239,8 +279,8 @@ function getSessionUsername() {
 }
 
 // Login function
-function login(username, password) {
-    const config = getAdminConfig();
+async function login(username, password) {
+    const config = await getAdminConfig();
     const adminUser = config.admin || DEFAULT_ADMIN;
     
     const passwordHash = md5(password);
@@ -260,13 +300,13 @@ function logout() {
 }
 
 // Update admin credentials
-function updateCredentials(username, newPassword) {
-    const config = getAdminConfig();
+async function updateCredentials(username, newPassword) {
+    const config = await getAdminConfig();
     config.admin = {
         username: username,
         passwordHash: newPassword ? md5(newPassword) : config.admin.passwordHash
     };
-    saveAdminConfig(config);
+    await saveAdminConfig(config);
     return true;
 }
 
@@ -278,14 +318,14 @@ if (loginForm) {
         window.location.href = 'dashboard.html';
     }
     
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const errorDiv = document.getElementById('loginError');
         
-        if (login(username, password)) {
+        if (await login(username, password)) {
             window.location.href = 'dashboard.html';
         } else {
             errorDiv.textContent = 'Invalid username or password';

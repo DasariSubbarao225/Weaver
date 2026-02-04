@@ -34,7 +34,10 @@ A modern, responsive interior design website showcasing services, portfolio, and
 
 ### Configuration Storage
 
-The admin panel stores all configuration in the browser's localStorage. You can:
+The admin panel now uses a centralized backend server for storing all configuration and media uploads. This means:
+- **Server-side Storage**: All content edits and media uploads are stored on the backend server
+- **Shared Across Devices**: Changes made from any device are immediately visible to all users
+- **Persistent**: Content persists server-side, not in browser localStorage
 - **Export**: Download your configuration as a JSON file for backup
 - **Import**: Restore configuration from a previously exported JSON file
 
@@ -48,9 +51,18 @@ The admin panel stores all configuration in the browser's localStorage. You can:
    cd Weaver
    ```
 
-2. **Open the website**
-   - Simply open `index.html` in your web browser
-   - Or use a local server (recommended):
+2. **Start the backend server**
+   ```bash
+   cd backend
+   npm install
+   npm start
+   ```
+   
+   The backend server will run on `http://localhost:3000` by default.
+
+3. **Open the website**
+   - In a new terminal, navigate back to the project root
+   - Open `index.html` in your web browser, or use a local server (recommended):
    ```bash
    # Using Python 3
    python3 -m http.server 8000
@@ -59,8 +71,9 @@ The admin panel stores all configuration in the browser's localStorage. You can:
    npx http-server
    ```
 
-3. **Access the website**
+4. **Access the website**
    - Open your browser and navigate to `http://localhost:8000`
+   - The website will automatically connect to the backend server at `http://localhost:3000`
 
 ## 📁 Project Structure
 
@@ -77,9 +90,16 @@ Weaver/
 │   ├── admin-styles.css   # Admin panel styles
 │   ├── admin-auth.js      # Authentication logic
 │   └── admin-dashboard.js # Dashboard functionality
-├── data/                   # Configuration files
-│   ├── site-config.json   # Site content configuration
-│   └── admin-config.json  # Admin settings
+├── backend/                # Backend server
+│   ├── server.js          # Express.js server
+│   ├── package.json       # Backend dependencies
+│   ├── data/              # Content storage
+│   │   └── content.json   # Site content (auto-generated)
+│   ├── uploads/           # Media uploads storage
+│   └── README.md          # Backend documentation
+├── data/                   # Initial configuration files
+│   ├── site-config.json   # Default site content
+│   └── admin-config.json  # Default admin settings
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml     # GitHub Actions deployment workflow
@@ -158,13 +178,51 @@ Replace the gradient backgrounds in portfolio items with actual images:
 #### Traditional Web Hosting
 1. Upload all files to your web server via FTP
 2. Ensure `index.html` is in the root directory
-3. Access your domain
+3. Deploy the backend server separately (see Backend Deployment below)
+4. Update the frontend API configuration if backend is hosted on a different domain
+5. Access your domain
+
+### Backend Deployment
+
+For production deployment, you'll need to deploy the backend server separately:
+
+1. **Deploy to a Node.js hosting service** (e.g., Heroku, Railway, DigitalOcean, AWS)
+2. **Set environment variables**:
+   - `PORT`: The port for the backend server (default: 3000)
+3. **Update frontend configuration**:
+   - If the backend is hosted on a different domain, update the `API_BASE_URL` in:
+     - `/js/script.js`
+     - `/admin/admin-dashboard.js`
+     - `/admin/admin-auth.js`
+
+Example for production:
+```javascript
+const API_BASE_URL = 'https://your-backend-domain.com/api';
+```
+
+## 🔌 Backend API
+
+The backend server provides REST API endpoints for content management and media uploads.
+
+### API Endpoints
+
+- **GET** `/api/content` - Retrieve all site content
+- **POST** `/api/content` - Update site content (requires JSON body with full content)
+- **POST** `/api/upload/image` - Upload an image file (multipart/form-data)
+- **POST** `/api/upload/video` - Upload a video file (multipart/form-data)
+- **GET** `/api/uploads` - List all uploaded files
+- **GET** `/uploads/:filename` - Serve uploaded media files
+- **GET** `/api/health` - Health check endpoint
+
+For more details, see the [backend README](backend/README.md).
 
 ## 🛠️ Technologies Used
 
 - **HTML5**: Semantic markup
 - **CSS3**: Modern styling with flexbox and grid
 - **JavaScript (ES6+)**: Interactive features
+- **Node.js & Express**: Backend server
+- **File-based Storage**: JSON for content, filesystem for uploads
 - **GitHub Actions**: CI/CD automation
 
 ## 📱 Browser Support
