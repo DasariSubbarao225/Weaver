@@ -34,3 +34,7 @@ temp/
 
 # Operating System files
 Thumbs.db
+
+# Backend uploads
+backend/uploads/*
+!backend/uploads/.gitkeep

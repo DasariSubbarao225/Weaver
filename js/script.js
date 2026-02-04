@@ -1,5 +1,10 @@
 // Site Configuration Loader
-const SITE_CONFIG_KEY = 'weaver_site_config';
+const SITE_CONFIG_KEY = 'weaver_site_config'; // Deprecated - using API now
+
+// API configuration
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : ''; // Use same origin in production
 
 // HTML escape function to prevent XSS
 function escapeHtml(text) {
@@ -9,22 +14,24 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Load site configuration from localStorage
-function loadSiteConfig() {
-    const stored = localStorage.getItem(SITE_CONFIG_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Error loading site config:', e);
+// Load site configuration from backend API
+async function loadSiteConfig() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/content`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const config = await response.json();
+        return config;
+    } catch (e) {
+        console.error('Error loading site config from API:', e);
+        return null;
     }
-    return null;
 }
 
 // Apply site configuration to the page
-function applySiteConfig() {
-    const config = loadSiteConfig();
+async function applySiteConfig() {
+    const config = await loadSiteConfig();
     if (!config) return;
 
     // Apply site name and description
