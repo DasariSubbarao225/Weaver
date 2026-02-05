@@ -1,0 +1,55 @@
+### Title: Enable Copilot Coding Agent for Full Commit Access
+
+**Objective:**  
+Enable and configure the GitHub Copilot Coding Agent to have full permissions and ability to make actual code changes (commits and pull requests) in the DasariSubbarao225/Weaver repository.
+
+#### Steps:
+
+1. **Enable GitHub Actions**
+   - Go to Settings → Actions → General
+   - Set "Allow all actions and reusable workflows"
+   - Save changes
+
+2. **Add Copilot Agent as Collaborator**
+   - Go to Settings → Collaborators & Teams
+   - Click “Add People”
+   - Search for and add:  
+     Copilot or copilot-swe-agent (GitHub App)
+   - Assign at least Write permission (preferably Admin for full access)
+
+3. **Check Branch Protection**
+   - Go to Settings → Branches
+   - If branch protection is active on main, under “Restrict who can push to matching branches,”  
+     add the Copilot agent to the list of allowed actors (or disable restriction temporarily)
+
+4. **Add Copilot Agent Workflow File**
+   - In .github/workflows/, ensure a workflow file (example: copilot.yml) exists with:
+
+     ```yaml
+     name: Copilot Coding Agent
+     on:
+       pull_request:
+         types: [opened, synchronize, reopened]
+       workflow_dispatch:
+     jobs:
+       copilot:
+         runs-on: ubuntu-latest
+         steps:
+           - uses: github/copilot-coding-agent@v1
+     ```
+
+5. **Approve Workflows (First Time)**
+   - Go to the Actions tab
+   - Approve any pending “Copilot Coding Agent” workflow runs
+
+6. **Verify Functionality**
+   - Re-trigger your coding agent task  
+     (e.g., "Implement backend server-side file-based storage and API for admin panel...")
+   - Verify that new PRs include committed code changes, not just planning text
+
+---
+
+**Acceptance Criteria:**
+- Copilot agent can open PRs containing real code modifications in the repository
+- No “plan-only” or “empty” PRs for dev tasks; changes are actual files/scripts/config as requested
+- Workflow runs are visible, and no permission errors are present
