@@ -1,0 +1,52 @@
+name: Deploy Backend to Render
+
+# This workflow can be enabled to automatically deploy the backend
+# Uncomment the 'on' section below to enable automatic deployments
+
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'backend/**'
+#       - 'render.yaml'
+  
+# Manual trigger only (comment out to disable)
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Deploy to Render
+        run: |
+          echo "Backend deployment is handled by Render's automatic deployment"
+          echo "When connected to GitHub, Render automatically deploys on push"
+          echo ""
+          echo "To set up automatic deployment:"
+          echo "1. Go to render.com and create a Web Service"
+          echo "2. Connect your GitHub repository"
+          echo "3. Render will automatically deploy on every push to main"
+          echo ""
+          echo "Current commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref }}"
+      
+      - name: Verify Render Configuration
+        run: |
+          if [ -f "render.yaml" ]; then
+            echo "✓ render.yaml found"
+            cat render.yaml
+          else
+            echo "⚠ render.yaml not found"
+          fi
+      
+      # Optional: Add a step to test the deployment
+      # - name: Health Check
+      #   run: |
+      #     sleep 30  # Wait for deployment
+      #     curl -f ${{ secrets.API_URL }}/api/health || exit 1
