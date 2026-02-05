@@ -2,6 +2,34 @@
 
 This guide covers deploying both the frontend (static site) and backend (API) for production use.
 
+## 🚀 Recommended Approach: Vercel (All-in-One)
+
+**Deploy everything from GitHub in one place!**
+
+👉 **See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md) for complete Vercel deployment guide**
+
+### Quick Vercel Deployment (3 Steps)
+
+1. **Sign up** at [vercel.com](https://vercel.com) with GitHub
+2. **Import** `DasariSubbarao225/Weaver` repository  
+3. **Deploy** - Done! Frontend + API live in 2 minutes
+
+✅ **Benefits**:
+- Single deployment for both frontend and API
+- Automatic deployments on every push to GitHub
+- Free tier with generous limits
+- Built-in serverless functions (no backend server needed)
+- HTTPS/SSL automatic
+- Custom domains supported
+
+---
+
+## Alternative Approaches
+
+### Option 1: Separate Deployments (Traditional)
+
+If you prefer separate hosting for frontend and backend:
+
 ## Architecture Overview
 
 The application consists of two parts:
@@ -325,3 +353,48 @@ For deployment questions and issues:
 
 **Weaver Interiors** - Transforming spaces, enriching lives.
 
+---
+
+## Comparison: Vercel vs Separate Deployments
+
+### Vercel (All-in-One)
+✅ **Pros**:
+- Single deployment from GitHub
+- Serverless API (no server to manage)
+- Automatic deployments on push
+- Free tier generous enough for most projects
+- Preview deployments for PRs
+- Built-in CDN
+
+❌ **Cons**:
+- Data storage is ephemeral (resets on cold starts)
+- Requires persistent storage solution for production
+- Learning serverless paradigm
+
+### Separate Deployments (GitHub Pages + Render)
+✅ **Pros**:
+- Traditional backend server approach
+- Persistent file storage on Render
+- Familiar Express.js patterns
+- Independent scaling
+
+❌ **Cons**:
+- Two separate deployments to manage
+- More complex setup process
+- Render free tier has limitations (spins down after inactivity)
+- Need to coordinate frontend/backend updates
+
+### Recommendation by Use Case
+
+| Use Case | Recommended Approach |
+|----------|---------------------|
+| **Quick demo/portfolio** | Vercel (fastest setup) |
+| **Learning/experimentation** | Vercel (free tier generous) |
+| **Production with frequent content updates** | Separate (Render + GitHub Pages) |
+| **Production requiring persistent data** | Vercel + database (MongoDB/Postgres) |
+| **Low traffic, occasional updates** | Either approach works |
+| **High traffic** | Vercel (better CDN and scaling) |
+
+---
+
+**Current Repository**: Supports both approaches! Choose what works best for your needs.
