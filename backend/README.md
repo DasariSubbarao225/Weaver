@@ -125,8 +125,8 @@ All endpoints include comprehensive error handling and return appropriate HTTP s
 ## Future Enhancements
 
 The backend is structured to support future features:
+- **Rate Limiting**: Add request rate limiting to prevent abuse (recommended for production)
+- **Authentication and Authorization**: Secure admin endpoints with user authentication
 - File upload handling for images and videos
-- Authentication and authorization
-- Database integration
-- Caching layer
-- Rate limiting
+- Database integration for better scalability
+- Caching layer for improved performance

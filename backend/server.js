@@ -15,6 +15,12 @@ const DATA_FILE = path.join(__dirname, 'data', 'content.json');
 app.use(cors()); 
 app.use(express.json({ limit: '10mb' })); // Parse JSON bodies with size limit
 
+// NOTE: Rate limiting should be implemented for production use
+// Consider using express-rate-limit package:
+// const rateLimit = require('express-rate-limit');
+// const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+// app.use('/api/', limiter);
+
 // Ensure data directory exists
 async function ensureDataDirectory() {
     const dataDir = path.join(__dirname, 'data');
