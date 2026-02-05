@@ -137,16 +137,14 @@ module.exports = async (req, res) => {
             }
 
             // Validate data types for critical fields
-            if (content.site === null || typeof content.site !== 'object' || 
-                content.hero === null || typeof content.hero !== 'object' || 
-                content.about === null || typeof content.about !== 'object' ||
-                content.services === null || typeof content.services !== 'object' || 
-                content.portfolio === null || typeof content.portfolio !== 'object' || 
-                content.contact === null || typeof content.contact !== 'object' ||
-                content.media === null || typeof content.media !== 'object') {
+            const invalidFields = requiredFields.filter(field => 
+                content[field] === null || typeof content[field] !== 'object'
+            );
+
+            if (invalidFields.length > 0) {
                 res.status(400).json({ 
                     error: 'Invalid content structure', 
-                    message: 'Required fields must be objects and cannot be null' 
+                    message: `The following fields must be objects and cannot be null: ${invalidFields.join(', ')}` 
                 });
                 return;
             }
