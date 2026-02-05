@@ -1,9 +1,16 @@
-name: Deploy Weaver Interiors Website
+name: Deploy Weaver Interiors Frontend
 
 on:
   push:
     branches:
       - main
+    paths:
+      - '**.html'
+      - '**.css'
+      - 'js/**'
+      - 'css/**'
+      - 'admin/**'
+      - 'data/**'
   pull_request:
     branches:
       - main
@@ -19,6 +26,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
+      - name: Verify Configuration
+        run: |
+          echo "Checking frontend configuration..."
+          if [ -f "js/config.js" ]; then
+            echo "✓ API configuration found"
+          else
+            echo "⚠ Warning: js/config.js not found"
+          fi
+      
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
@@ -26,3 +42,13 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
           publish_branch: gh-pages
+          exclude_assets: 'backend/**,node_modules/**,.github/**,.git/**'
+      
+      - name: Deployment Summary
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "✅ Frontend deployed to GitHub Pages"
+          echo "🌐 Site URL: https://dasarisubbarao225.github.io/Weaver/"
+          echo ""
+          echo "Note: Backend API must be deployed separately"
+          echo "See backend/DEPLOYMENT.md for instructions"

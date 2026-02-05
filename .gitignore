@@ -34,3 +34,6 @@ temp/
 
 # Operating System files
 Thumbs.db
+
+# Test files (not for deployment)
+test-config.html

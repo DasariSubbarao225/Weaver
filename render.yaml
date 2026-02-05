@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: weaver-api
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        value: https://dasarisubbarao225.github.io
+    healthCheckPath: /api/health

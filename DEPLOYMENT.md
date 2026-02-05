@@ -1,150 +1,327 @@
 # Weaver Interiors - Deployment Guide
 
-## Quick Deployment to GitHub Pages
+This guide covers deploying both the frontend (static site) and backend (API) for production use.
 
-### Automatic Deployment (Recommended)
+## Architecture Overview
 
-1. **Merge the Pull Request**
-   - Review and merge the PR into the `main` branch
-   - The GitHub Actions workflow will automatically deploy the website
+The application consists of two parts:
+1. **Frontend**: Static HTML/CSS/JavaScript hosted on GitHub Pages
+2. **Backend API**: Node.js/Express server for content management
 
-2. **Enable GitHub Pages**
-   - Go to repository **Settings** → **Pages**
-   - Under "Build and deployment":
-     - Source: Deploy from a branch
-     - Branch: `gh-pages` / `root`
-   - Click **Save**
+## Quick Start - Complete Deployment
 
-3. **Access Your Website**
-   - Your site will be live at: `https://DasariSubbarao225.github.io/Weaver/`
-   - Initial deployment may take 2-3 minutes
+### Step 1: Deploy Backend API
 
-### Manual Deployment Options
+Choose one of these platforms for hosting the backend:
 
-#### Option 1: Netlify (Easiest)
-1. Go to [Netlify](https://www.netlify.com/)
-2. Sign up or log in
-3. Drag and drop the entire project folder
-4. Your site is live instantly!
+#### Option A: Render (Recommended - Easiest)
 
-#### Option 2: Vercel
+1. **Sign up** at [render.com](https://render.com/) using GitHub
+2. **Create New Web Service**: 
+   - Click "New +" → "Web Service"
+   - Connect repository: `DasariSubbarao225/Weaver`
+   - Configure:
+     - Name: `weaver-api`
+     - Root Directory: `backend`
+     - Build Command: `npm install`
+     - Start Command: `npm start`
+     - Plan: Free
+3. **Set Environment Variables**:
+   - `NODE_ENV`: `production`
+   - `ALLOWED_ORIGINS`: `https://dasarisubbarao225.github.io`
+4. **Deploy**: Click "Create Web Service"
+5. **Note your API URL**: e.g., `https://weaver-api.onrender.com`
+
+#### Option B: Railway
+
+1. Go to [railway.app](https://railway.app/), sign up with GitHub
+2. New Project → Deploy from GitHub → Select this repository
+3. Set root directory to `backend` in settings
+4. Add environment variables (same as above)
+5. Get the generated URL
+
+#### Option C: Other Platforms
+- See `backend/DEPLOYMENT.md` for Heroku and other options
+
+### Step 2: Update Frontend Configuration
+
+After deploying the backend, update the frontend to use your production API:
+
+1. Edit `js/config.js`
+2. Find these lines (around line 22-24):
+   ```javascript
+   if (hostname.includes('github.io')) {
+       return 'https://weaver-api.onrender.com';
+   }
+   ```
+3. Replace `https://weaver-api.onrender.com` with your actual API URL
+4. Commit and push:
+   ```bash
+   git add js/config.js
+   git commit -m "Update production API URL"
+   git push origin main
+   ```
+
+### Step 3: Deploy Frontend (GitHub Pages)
+
+1. **Enable GitHub Pages**:
+   - Go to repository Settings → Pages
+   - Source: Deploy from a branch
+   - Branch: `gh-pages` / `root`
+   - Click Save
+
+2. **Automatic Deployment**:
+   - Push to main branch triggers automatic deployment
+   - GitHub Actions workflow handles the deployment
+   - Site available at: `https://dasarisubbarao225.github.io/Weaver/`
+
+### Step 4: Test Your Deployment
+
+1. **Test Backend API**:
+   ```bash
+   curl https://your-api-url.com/api/health
+   ```
+
+2. **Test Frontend**:
+   - Visit `https://dasarisubbarao225.github.io/Weaver/`
+   - Check browser console for API connection
+   - Try the admin panel at `/admin/`
+
+3. **Verify Integration**:
+   - Login to admin panel (admin/password)
+   - Make a change to site content
+   - Verify change appears on main site
+
+## Local Development
+
+### Frontend Setup
+
+## Local Development
+
+### Running the Complete Application Locally
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/DasariSubbarao225/Weaver.git
+   cd Weaver
+   ```
+
+2. **Start the Backend API**:
+   ```bash
+   cd backend
+   npm install
+   npm start
+   ```
+   Backend runs on `http://localhost:3000`
+
+3. **Start the Frontend** (in a new terminal):
+   ```bash
+   cd ..  # Back to project root
+   
+   # Option 1: Python
+   python3 -m http.server 8000
+   
+   # Option 2: Node.js
+   npx http-server -p 8000
+   ```
+   Frontend runs on `http://localhost:8000`
+
+4. **Access the Application**:
+   - Main site: `http://localhost:8000`
+   - Admin panel: `http://localhost:8000/admin/`
+   - API health: `http://localhost:3000/api/health`
+
+### Configuration for Local Development
+
+The application automatically detects localhost and uses `http://localhost:3000` for the API. No configuration changes needed for local development.
+
+## Environment-Based Configuration
+
+The API URL is automatically determined based on the environment:
+
+- **Local Development** (`localhost`): Uses `http://localhost:3000`
+- **GitHub Pages** (`*.github.io`): Uses production API URL
+- **Custom Domain**: Uses production API URL
+
+This is configured in `js/config.js`.
+
+## Manual Deployment Options
+
+### Frontend Alternatives to GitHub Pages
+
+#### Netlify (Drop-and-Deploy)
+1. Go to [netlify.com](https://netlify.com)
+2. Drag and drop the project folder
+3. Set environment variable if needed:
+   - Key: `API_BASE_URL`
+   - Value: Your backend API URL
+
+#### Vercel
 ```bash
 npm i -g vercel
 cd /path/to/Weaver
 vercel
 ```
 
-#### Option 3: Traditional Web Hosting
-1. Upload all files via FTP to your web server
-2. Ensure `index.html` is in the root directory
-3. Access your domain
+Follow prompts and set the backend API URL when asked.
 
-## Local Development
+## Custom Domain Setup
 
-### Run Locally
-```bash
-# Clone the repository
-git clone https://github.com/DasariSubbarao225/Weaver.git
-cd Weaver
+### For GitHub Pages
+1. Go to Settings → Pages
+2. Add your custom domain
+3. Configure DNS with your domain provider:
+   - Add CNAME record pointing to `dasarisubbarao225.github.io`
+4. Update `ALLOWED_ORIGINS` in backend to include your domain
 
-# Start a local server (choose one):
+### For Backend (Render)
+1. Go to service Settings → Custom Domain
+2. Add your domain
+3. Configure DNS:
+   - Add CNAME record pointing to Render's domain
 
-# Python 3
-python3 -m http.server 8000
+## Configuration Override
 
-# Python 2
-python -m SimpleHTTPServer 8000
+You can override the API URL without changing code by setting it in `index.html`:
 
-# Node.js (http-server)
-npx http-server
-
-# PHP
-php -S localhost:8000
-```
-
-Then open: `http://localhost:8000`
-
-## Customization Guide
-
-### Update Contact Information
-Edit `index.html` around line 152:
 ```html
-<p>📞 Phone: YOUR-PHONE</p>
-<p>📧 Email: YOUR-EMAIL</p>
-<p>📍 Address: YOUR-ADDRESS</p>
+<script>
+window.WEAVER_CONFIG = {
+    API_BASE_URL: 'https://your-custom-api-url.com'
+};
+</script>
+<script src="js/config.js"></script>
 ```
 
-### Change Colors
-Edit `css/styles.css` lines 7-13:
-```css
-:root {
-    --primary-color: #667eea;    /* Main brand color */
-    --secondary-color: #764ba2;  /* Secondary color */
-    --text-dark: #333;
-    --text-light: #666;
-}
-```
+## Monitoring and Maintenance
 
-### Add Real Images
-Replace gradient backgrounds in portfolio section with images:
-```html
-<div class="portfolio-image" style="background-image: url('images/project1.jpg');"></div>
-```
+### Backend Monitoring
+- **Render**: Dashboard shows service status and logs
+- **Railway**: Monitor deployments and view logs
+- Health check endpoint: `https://your-api/api/health`
 
-### Modify Services
-Edit `index.html` around line 75-102 to add/remove/change services.
+### Frontend Monitoring  
+- GitHub Pages: Check Actions tab for deployment status
+- Browser console: Check for API connection errors
 
 ## Troubleshooting
 
-### Website Not Showing After Deployment
-- Wait 2-3 minutes for GitHub Pages to build
-- Check Actions tab for deployment status
-- Ensure `gh-pages` branch is selected in Settings → Pages
+### CORS Errors
+If you see "CORS policy" errors in the browser console:
+1. Add your frontend URL to `ALLOWED_ORIGINS` environment variable in backend
+2. Format: `https://domain1.com,https://domain2.com` (comma-separated, no spaces)
+3. Redeploy backend after changing environment variables
 
-### Contact Form Not Working
-- The form currently shows success message (demo mode)
-- To make it functional, integrate with:
-  - [Formspree](https://formspree.io/)
-  - [Netlify Forms](https://www.netlify.com/products/forms/)
-  - Backend API endpoint
+### API Connection Failed
+1. Check backend is running: visit API URL in browser
+2. Verify API URL in `js/config.js` matches your backend
+3. Check browser console for exact error
+4. Test API endpoints directly with curl
 
-### Mobile Menu Not Working
-- Ensure JavaScript is enabled in browser
-- Check browser console for errors
-- Clear browser cache
+### Changes Not Appearing
+1. **Frontend**: Clear browser cache or hard refresh (Ctrl+Shift+R)
+2. **Backend**: Redeploy or restart the service
+3. Check GitHub Actions for deployment status
 
-## File Structure
+### Data Not Persisting
+The backend uses file-based storage. On platforms like Render's free tier:
+- Files may reset on service restart
+- Consider using external storage or database for production
+
+## Production Checklist
+
+Before going live:
+
+- [ ] Backend deployed and accessible
+- [ ] Frontend API URL updated to production backend
+- [ ] CORS configured with correct origins
+- [ ] Admin credentials changed from defaults
+- [ ] Health endpoint returns "ok"
+- [ ] Test content changes via admin panel
+- [ ] SSL/HTTPS enabled (automatic on all platforms)
+- [ ] Custom domain configured (optional)
+- [ ] Monitoring set up
+
+## Continuous Deployment
+
+The repository is configured for continuous deployment:
+
+**GitHub Actions Workflow** (`.github/workflows/deploy.yml`):
+- Triggers on push to `main` branch
+- Automatically deploys frontend to GitHub Pages
+
+**Backend Auto-Deploy**:
+- Render: Automatically redeploys on push to main
+- Railway: Automatically redeploys on push
+- Configure in platform settings
+
+## Cost Summary
+
+**Free Tier Hosting**:
+- Frontend: GitHub Pages (free, unlimited)
+- Backend Options:
+  - Render: 750 hours/month free
+  - Railway: $5 credit/month
+  - Vercel: Free tier available
+
+## Getting Help
+
+For deployment issues:
+1. Check platform documentation
+2. Review application logs
+3. Test API endpoints individually
+4. Check browser console for errors
+5. Verify environment variables
+
+## Next Steps After Deployment
+
+1. **Change Admin Credentials**: Login and update in Settings
+2. **Customize Content**: Use admin panel to update site content
+3. **Add Real Images**: Upload images for portfolio
+4. **Configure Analytics**: Add Google Analytics if desired
+5. **SEO Optimization**: Update meta tags and descriptions
+6. **Test on Devices**: Check mobile and tablet layouts
+
+---
+
+## Architecture Diagram
+
 ```
-Weaver/
-├── index.html              # Main HTML file
-├── css/
-│   └── styles.css         # All styles
-├── js/
-│   └── script.js          # All JavaScript
-├── .github/
-│   └── workflows/
-│       └── deploy.yml     # Deployment workflow
-├── .gitignore             # Git ignore rules
-└── README.md              # Documentation
+┌─────────────────────────────────────────┐
+│  Users' Browsers                        │
+└────────────┬────────────────────────────┘
+             │
+             ├──────────────────┬──────────────────┐
+             │                  │                  │
+             ▼                  ▼                  ▼
+┌─────────────────────┐ ┌──────────────┐ ┌──────────────┐
+│ GitHub Pages        │ │ Netlify      │ │ Vercel       │
+│ (Static Frontend)   │ │ (Frontend)   │ │ (Frontend)   │
+└─────────┬───────────┘ └──────┬───────┘ └──────┬───────┘
+          │                    │                │
+          └────────────────────┴────────────────┘
+                               │
+                               │ API Requests
+                               ▼
+                    ┌──────────────────────┐
+                    │ Backend API Server   │
+                    │ (Render/Railway)     │
+                    │                      │
+                    │ - Express.js         │
+                    │ - CORS enabled       │
+                    │ - JSON storage       │
+                    └──────────────────────┘
 ```
 
 ## Support
 
-For issues or questions:
-- Create an issue in the GitHub repository
-- Check the README.md for detailed documentation
-- Review commit history for recent changes
-
-## Next Steps
-
-1. ✅ Merge the PR to `main` branch
-2. ✅ Enable GitHub Pages in repository settings
-3. ✅ Verify deployment at your GitHub Pages URL
-4. ✨ Customize content and colors to match your brand
-5. 🖼️ Add real project images to portfolio
-6. 📧 Configure contact form backend (optional)
-7. 🚀 Share your website!
+For deployment questions and issues:
+- Check this deployment guide
+- Review backend deployment guide: `backend/DEPLOYMENT.md`
+- Check GitHub repository issues
+- Review platform-specific documentation
 
 ---
 
-**Note**: This is a static website. For dynamic features (database, user authentication, etc.), you'll need to integrate with backend services or upgrade to a full-stack framework.
+**Weaver Interiors** - Transforming spaces, enriching lives.
+

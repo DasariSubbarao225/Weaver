@@ -167,27 +167,33 @@ Replace the gradient backgrounds in portfolio items with actual images:
 
 ## 🌐 Deployment
 
-### GitHub Pages (Automatic)
+For complete deployment instructions including backend API setup, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-1. **Enable GitHub Pages**
-   - Go to your repository settings
-   - Navigate to "Pages" section
-   - Select "Deploy from a branch"
-   - Choose `gh-pages` branch
-   - Save the settings
+### Quick Start - Production Deployment
 
-2. **Push to main branch**
-   ```bash
-   git add .
-   git commit -m "Deploy website"
-   git push origin main
-   ```
+**Step 1: Deploy Backend API**
+1. Choose a hosting platform (Render recommended)
+2. Deploy the `/backend` directory
+3. Note your API URL (e.g., `https://weaver-api.onrender.com`)
 
-3. **Automated Deployment**
-   - The GitHub Actions workflow will automatically deploy to GitHub Pages
-   - Your site will be available at: `https://DasariSubbarao225.github.io/Weaver/`
+**Step 2: Configure Frontend**
+1. Edit `js/config.js` and update the production API URL
+2. Push changes to GitHub
 
-### Manual Deployment
+**Step 3: Deploy Frontend**
+1. Enable GitHub Pages in repository settings
+2. Push to main branch - automatic deployment via GitHub Actions
+3. Site available at: `https://DasariSubbarao225.github.io/Weaver/`
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed step-by-step instructions.
+
+### Local Development (No Deployment)
+
+### Local Development (No Deployment)
+
+For local testing without deployment, follow the Quick Start section at the top of this README.
+
+### Alternative Hosting Options
 
 #### Netlify
 1. Sign up at [Netlify](https://www.netlify.com/)
