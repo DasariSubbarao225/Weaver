@@ -136,15 +136,17 @@ module.exports = async (req, res) => {
                 return;
             }
 
-            // Validate data types for critical fields
+            // Validate data types for critical fields (must be objects, not arrays or null)
             const invalidFields = requiredFields.filter(field => 
-                content[field] === null || typeof content[field] !== 'object'
+                content[field] === null || 
+                typeof content[field] !== 'object' || 
+                Array.isArray(content[field])
             );
 
             if (invalidFields.length > 0) {
                 res.status(400).json({ 
                     error: 'Invalid content structure', 
-                    message: `The following fields must be objects and cannot be null: ${invalidFields.join(', ')}` 
+                    message: `The following fields must be objects (not arrays or null): ${invalidFields.join(', ')}` 
                 });
                 return;
             }
