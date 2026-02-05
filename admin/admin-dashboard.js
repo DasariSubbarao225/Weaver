@@ -1,7 +1,7 @@
 // Admin Dashboard Module
 
-// API Configuration
-const API_BASE_URL = 'http://localhost:3000';
+// API Configuration - loaded from config.js
+// API_BASE_URL is now loaded from ../js/config.js
 
 // Site configuration storage key (deprecated - now using backend API)
 const SITE_CONFIG_KEY = 'weaver_site_config';

@@ -1,6 +1,6 @@
 // Site Configuration Loader
 const SITE_CONFIG_KEY = 'weaver_site_config'; // Deprecated - kept for backward compatibility
-const API_BASE_URL = 'http://localhost:3000';
+// API_BASE_URL is now loaded from config.js
 
 // HTML escape function to prevent XSS
 function escapeHtml(text) {
