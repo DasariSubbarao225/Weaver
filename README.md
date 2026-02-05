@@ -2,6 +2,13 @@
 
 A modern, responsive interior design website showcasing services, portfolio, and contact information.
 
+## 📋 Quick Links
+
+- **🚀 [Quick Start Deployment Guide](QUICK_START.md)** - Choose your deployment method (5 min read)
+- **📖 [Vercel Deployment](VERCEL_DEPLOYMENT.md)** - Deploy everything from GitHub (Recommended)
+- **📖 [Traditional Deployment](DEPLOYMENT.md)** - Separate frontend/backend deployment
+- **💻 [Setup Guide](SETUP.md)** - Local development setup
+
 ## 🌟 Features
 
 - **Responsive Design**: Fully responsive layout that works on desktop, tablet, and mobile devices
@@ -75,30 +82,41 @@ The admin panel stores all configuration on a backend server for persistence and
 
 ```
 Weaver/
-├── index.html              # Main HTML file
+├── index.html                 # Main HTML file
 ├── css/
-│   └── styles.css         # Stylesheet with responsive design
+│   └── styles.css            # Stylesheet with responsive design
 ├── js/
-│   └── script.js          # JavaScript for interactivity
-├── admin/                  # Admin panel
-│   ├── index.html         # Admin login page
-│   ├── dashboard.html     # Admin dashboard
-│   ├── admin-styles.css   # Admin panel styles
-│   ├── admin-auth.js      # Authentication logic
-│   └── admin-dashboard.js # Dashboard functionality
-├── backend/                # Backend API server
-│   ├── server.js          # Express server
-│   ├── package.json       # Backend dependencies
-│   ├── README.md          # Backend documentation
-│   └── data/              # Content storage
-│       └── content.json   # Site content data
-├── data/                   # Legacy configuration files
-│   ├── site-config.json   # Site content configuration (deprecated)
-│   └── admin-config.json  # Admin settings (deprecated)
+│   ├── script.js             # JavaScript for interactivity
+│   └── config.js             # API configuration
+├── admin/                     # Admin panel
+│   ├── index.html            # Admin login page
+│   ├── dashboard.html        # Admin dashboard
+│   ├── admin-styles.css      # Admin panel styles
+│   ├── admin-auth.js         # Authentication logic
+│   └── admin-dashboard.js    # Dashboard functionality
+├── api/                       # Serverless API functions (Vercel)
+│   ├── health.js             # Health check endpoint
+│   ├── content.js            # Content management endpoint
+│   └── README.md             # API documentation
+├── backend/                   # Traditional backend (Express server)
+│   ├── server.js             # Express server
+│   ├── package.json          # Backend dependencies
+│   ├── README.md             # Backend documentation
+│   └── data/                 # Content storage
+│       └── content.json      # Site content data
+├── data/                      # Legacy configuration files
+│   ├── site-config.json      # Site content configuration (deprecated)
+│   └── admin-config.json     # Admin settings (deprecated)
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml     # GitHub Actions deployment workflow
-└── README.md              # Project documentation
+│       ├── deploy.yml        # GitHub Pages deployment
+│       └── deploy-backend.yml # Backend deployment workflow
+├── vercel.json               # Vercel configuration
+├── package.json              # Root dependencies
+├── QUICK_START.md            # Quick deployment guide
+├── VERCEL_DEPLOYMENT.md      # Vercel deployment guide
+├── DEPLOYMENT.md             # Traditional deployment guide
+└── README.md                 # Project documentation
 ```
 
 ## 🎨 Customization
