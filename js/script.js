@@ -1,5 +1,5 @@
 // Site Configuration Loader
-const SITE_CONFIG_KEY = 'weaver_site_config';
+const API_BASE_URL = 'http://localhost:3000';
 
 // HTML escape function to prevent XSS
 function escapeHtml(text) {
@@ -9,22 +9,23 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Load site configuration from localStorage
-function loadSiteConfig() {
-    const stored = localStorage.getItem(SITE_CONFIG_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Error loading site config:', e);
+// Load site configuration from backend API
+async function loadSiteConfig() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/content`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch site config');
         }
+        return await response.json();
+    } catch (e) {
+        console.error('Error loading site config:', e);
+        return null;
     }
-    return null;
 }
 
 // Apply site configuration to the page
-function applySiteConfig() {
-    const config = loadSiteConfig();
+async function applySiteConfig() {
+    const config = await loadSiteConfig();
     if (!config) return;
 
     // Apply site name and description

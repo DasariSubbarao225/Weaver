@@ -34,11 +34,18 @@ A modern, responsive interior design website showcasing services, portfolio, and
 
 ### Configuration Storage
 
-The admin panel stores all configuration in the browser's localStorage. You can:
-- **Export**: Download your configuration as a JSON file for backup
-- **Import**: Restore configuration from a previously exported JSON file
+The admin panel now uses a **backend server** for persistent storage. All configuration changes are:
+- **Saved to backend**: Changes are stored in `backend/data/content.json`
+- **Shared across users**: All users see the latest updates instantly
+- **Persistent**: Data persists across sessions and devices
+- **Export/Import**: Download or upload configuration as JSON for backup/migration
 
 ## 🚀 Quick Start
+
+### Prerequisites
+
+- **Node.js** (v14 or higher) - Required for backend server
+- **npm** (v6 or higher) - Comes with Node.js
 
 ### Local Development
 
@@ -48,19 +55,32 @@ The admin panel stores all configuration in the browser's localStorage. You can:
    cd Weaver
    ```
 
-2. **Open the website**
-   - Simply open `index.html` in your web browser
-   - Or use a local server (recommended):
+2. **Start the backend server**
    ```bash
+   cd backend
+   npm install
+   npm start
+   ```
+   
+   The backend server will start on `http://localhost:3000`
+   
+   **Important**: The backend must be running for the admin panel and site to work properly.
+
+3. **Open the website** (in a separate terminal)
+   ```bash
+   # Navigate back to project root
+   cd ..
+   
    # Using Python 3
    python3 -m http.server 8000
    
-   # Using Node.js (http-server)
+   # OR using Node.js (http-server)
    npx http-server
    ```
 
-3. **Access the website**
+4. **Access the website**
    - Open your browser and navigate to `http://localhost:8000`
+   - The website will communicate with the backend at `http://localhost:3000`
 
 ## 📁 Project Structure
 
@@ -70,29 +90,108 @@ Weaver/
 ├── css/
 │   └── styles.css         # Stylesheet with responsive design
 ├── js/
-│   └── script.js          # JavaScript for interactivity
+│   └── script.js          # JavaScript for interactivity (loads from backend API)
 ├── admin/                  # Admin panel
 │   ├── index.html         # Admin login page
 │   ├── dashboard.html     # Admin dashboard
 │   ├── admin-styles.css   # Admin panel styles
-│   ├── admin-auth.js      # Authentication logic
-│   └── admin-dashboard.js # Dashboard functionality
-├── data/                   # Configuration files
-│   ├── site-config.json   # Site content configuration
-│   └── admin-config.json  # Admin settings
+│   ├── admin-auth.js      # Authentication logic (uses backend API)
+│   └── admin-dashboard.js # Dashboard functionality (uses backend API)
+├── backend/                # Backend server (NEW)
+│   ├── server.js          # Express server with REST API
+│   ├── package.json       # Node.js dependencies
+│   ├── README.md          # Backend documentation
+│   ├── data/
+│   │   └── content.json   # Persistent content storage
+│   └── uploads/           # Directory for future media file uploads
+├── data/                   # Legacy configuration files (deprecated)
+│   ├── site-config.json   # (No longer used - migrated to backend)
+│   └── admin-config.json  # (No longer used - migrated to backend)
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml     # GitHub Actions deployment workflow
 └── README.md              # Project documentation
 ```
 
+## 🔌 Backend API
+
+The backend server provides a REST API for content management:
+
+### API Endpoints
+
+#### GET /api/content
+Retrieves all site content and configuration.
+
+**Example Request:**
+```bash
+curl http://localhost:3000/api/content
+```
+
+**Example Response:**
+```json
+{
+  "site": {
+    "name": "Weaver Interiors",
+    "tagline": "Transforming spaces, enriching lives.",
+    "description": "Interior design services"
+  },
+  "hero": { ... },
+  "services": { ... },
+  "portfolio": { ... },
+  "contact": { ... },
+  "settings": { ... }
+}
+```
+
+#### POST /api/content
+Saves updated content and configuration.
+
+**Example Request:**
+```bash
+curl -X POST http://localhost:3000/api/content \
+  -H "Content-Type: application/json" \
+  -d @backend/data/content.json
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "message": "Content saved successfully"
+}
+```
+
+#### GET /health
+Health check endpoint.
+
+```bash
+curl http://localhost:3000/health
+```
+
+### Content Storage Format
+
+All content is stored in `backend/data/content.json`. The structure includes:
+
+- **site**: Site metadata (name, tagline, description)
+- **hero**: Hero section (title, subtitle, button, background)
+- **about**: About section (title, paragraphs, features)
+- **services**: Services list with titles and descriptions
+- **portfolio**: Portfolio items with images/videos/gradients
+- **contact**: Contact information and business hours
+- **media**: Media library (images and videos)
+- **settings**: Theme settings (colors)
+- **admin**: Admin credentials (username and password hash)
+
+See `backend/README.md` for detailed documentation.
+
 ## 🎨 Customization
 
 ### Using Admin Panel (Recommended)
-1. Login to the admin panel at `/admin/`
-2. Navigate to different sections to edit content
-3. Use the Settings page to change theme colors
-4. Save changes to see them reflected on the main site
+1. **Start the backend server** (required)
+2. Login to the admin panel at `/admin/`
+3. Navigate to different sections to edit content
+4. Use the Settings page to change theme colors
+5. Save changes - they're instantly reflected for all users
 
 ### Manual Customization
 
@@ -123,49 +222,93 @@ Replace the gradient backgrounds in portfolio items with actual images:
 
 ## 🌐 Deployment
 
-### GitHub Pages (Automatic)
+### Important Note for Production
 
-1. **Enable GitHub Pages**
+When deploying to production, you'll need to:
+1. Deploy the backend server to a hosting service (Heroku, AWS, DigitalOcean, etc.)
+2. Update the `API_BASE_URL` in the following files to point to your backend server:
+   - `admin/admin-auth.js`
+   - `admin/admin-dashboard.js`
+   - `js/script.js`
+3. Deploy the frontend to your preferred static hosting service
+
+### GitHub Pages (Frontend Only)
+
+**Note**: GitHub Pages only hosts static files. You'll need a separate backend server.
+
+1. **Deploy backend separately** (Heroku, Railway, etc.)
+2. **Update API URLs** in frontend files to point to your backend
+3. **Enable GitHub Pages**
    - Go to your repository settings
    - Navigate to "Pages" section
    - Select "Deploy from a branch"
    - Choose `gh-pages` branch
    - Save the settings
 
-2. **Push to main branch**
+4. **Push to main branch**
    ```bash
    git add .
    git commit -m "Deploy website"
    git push origin main
    ```
 
-3. **Automated Deployment**
+5. **Automated Deployment**
    - The GitHub Actions workflow will automatically deploy to GitHub Pages
    - Your site will be available at: `https://DasariSubbarao225.github.io/Weaver/`
 
+### Backend Deployment Options
+
+#### Heroku
+```bash
+cd backend
+heroku create weaver-backend
+git push heroku main
+```
+
+#### Railway
+1. Connect your GitHub repository
+2. Select the `backend` directory
+3. Deploy automatically
+
+#### DigitalOcean / AWS / Azure
+Deploy as a Node.js application on any cloud platform.
+
 ### Manual Deployment
 
-#### Netlify
+#### Netlify (Frontend)
 1. Sign up at [Netlify](https://www.netlify.com/)
-2. Drag and drop the project folder
-3. Your site is live!
+2. Drag and drop the project folder (excluding backend)
+3. Update API URLs to point to your backend server
 
-#### Vercel
+#### Vercel (Frontend)
 1. Install Vercel CLI: `npm i -g vercel`
 2. Run `vercel` in the project directory
 3. Follow the prompts
+4. Update API URLs to point to your backend server
 
 #### Traditional Web Hosting
-1. Upload all files to your web server via FTP
-2. Ensure `index.html` is in the root directory
-3. Access your domain
+1. Upload frontend files to your web server via FTP
+2. Deploy backend to a Node.js hosting service
+3. Update API URLs in frontend files
+4. Ensure `index.html` is in the root directory
 
 ## 🛠️ Technologies Used
 
+### Frontend
 - **HTML5**: Semantic markup
 - **CSS3**: Modern styling with flexbox and grid
-- **JavaScript (ES6+)**: Interactive features
-- **GitHub Actions**: CI/CD automation
+- **JavaScript (ES6+)**: Interactive features with async/await
+- **Fetch API**: For backend communication
+
+### Backend
+- **Node.js**: JavaScript runtime
+- **Express**: Web framework for REST API
+- **CORS**: Cross-Origin Resource Sharing middleware
+- **File System (fs)**: JSON-based persistent storage
+
+### DevOps
+- **GitHub Actions**: CI/CD automation for frontend
+- **npm**: Package management
 
 ## 📱 Browser Support
 

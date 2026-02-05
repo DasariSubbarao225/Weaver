@@ -169,8 +169,8 @@ function md5(string) {
 }
 
 // Admin configuration
-const ADMIN_CONFIG_KEY = 'weaver_admin_config';
 const AUTH_SESSION_KEY = 'weaver_admin_session';
+const API_BASE_URL = 'http://localhost:3000';
 
 // Default admin credentials (password hash for "password")
 const DEFAULT_ADMIN = {
@@ -178,22 +178,41 @@ const DEFAULT_ADMIN = {
     passwordHash: '5f4dcc3b5aa765d61d8327deb882cf99' // MD5 of "password"
 };
 
-// Get admin config from localStorage or use default
-function getAdminConfig() {
-    const stored = localStorage.getItem(ADMIN_CONFIG_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Error parsing admin config:', e);
+// Get admin config from backend API
+async function getAdminConfig() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/content`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch admin config');
         }
+        const data = await response.json();
+        return data;
+    } catch (e) {
+        console.error('Error fetching admin config:', e);
+        return { admin: DEFAULT_ADMIN };
     }
-    return { admin: DEFAULT_ADMIN };
 }
 
-// Save admin config to localStorage
-function saveAdminConfig(config) {
-    localStorage.setItem(ADMIN_CONFIG_KEY, JSON.stringify(config));
+// Save admin config to backend API
+async function saveAdminConfig(config) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/content`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(config)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save admin config');
+        }
+        
+        return await response.json();
+    } catch (e) {
+        console.error('Error saving admin config:', e);
+        throw e;
+    }
 }
 
 // Check if user is authenticated
@@ -239,8 +258,8 @@ function getSessionUsername() {
 }
 
 // Login function
-function login(username, password) {
-    const config = getAdminConfig();
+async function login(username, password) {
+    const config = await getAdminConfig();
     const adminUser = config.admin || DEFAULT_ADMIN;
     
     const passwordHash = md5(password);
@@ -260,13 +279,13 @@ function logout() {
 }
 
 // Update admin credentials
-function updateCredentials(username, newPassword) {
-    const config = getAdminConfig();
+async function updateCredentials(username, newPassword) {
+    const config = await getAdminConfig();
     config.admin = {
         username: username,
         passwordHash: newPassword ? md5(newPassword) : config.admin.passwordHash
     };
-    saveAdminConfig(config);
+    await saveAdminConfig(config);
     return true;
 }
 
@@ -278,17 +297,22 @@ if (loginForm) {
         window.location.href = 'dashboard.html';
     }
     
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const errorDiv = document.getElementById('loginError');
         
-        if (login(username, password)) {
-            window.location.href = 'dashboard.html';
-        } else {
-            errorDiv.textContent = 'Invalid username or password';
+        try {
+            if (await login(username, password)) {
+                window.location.href = 'dashboard.html';
+            } else {
+                errorDiv.textContent = 'Invalid username or password';
+            }
+        } catch (error) {
+            errorDiv.textContent = 'Error connecting to server. Please try again.';
+            console.error('Login error:', error);
         }
     });
 }

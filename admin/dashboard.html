@@ -43,8 +43,8 @@
             <div class="info-banner">
                 <div class="info-banner-icon">💾</div>
                 <div class="info-banner-content">
-                    <strong>Data Storage Location:</strong> All admin changes, images, and videos are stored in your browser's localStorage. 
-                    This data is specific to this browser and device. Use the Export/Import feature in Settings to backup or transfer your data.
+                    <strong>Data Storage Location:</strong> All admin changes are now stored on the backend server in <code>backend/data/content.json</code>. 
+                    Changes are instantly shared across all users and devices. Use the Export/Import feature in Settings to backup or migrate your data.
                 </div>
             </div>
             
@@ -247,7 +247,7 @@
             <!-- Media Storage Notice -->
             <div class="notice-box">
                 <strong>📁 Storage Information:</strong>
-                <p>Images and videos are stored as URLs in your browser's localStorage. Only the URLs are saved, not the actual files. 
+                <p>Images and videos are stored as URLs in the backend server (<code>backend/data/content.json</code>). Only the URLs are saved, not the actual files. 
                 For portfolio images, you can upload images to free hosting services like <a href="https://imgur.com" target="_blank">Imgur</a>, 
                 <a href="https://cloudinary.com" target="_blank">Cloudinary</a>, or store them in your repository and use relative paths.</p>
             </div>
@@ -337,23 +337,23 @@
                     <div class="storage-info">
                         <p><strong>Where is my data stored?</strong></p>
                         <ul>
-                            <li>All admin changes, configurations, and media URLs are stored in your browser's <strong>localStorage</strong></li>
-                            <li>Data is specific to this browser and device only</li>
-                            <li>No data is uploaded to any server or cloud storage</li>
+                            <li>All admin changes, configurations, and media URLs are stored on the <strong>backend server</strong> in <code>backend/data/content.json</code></li>
+                            <li>Data is persistent and shared across all users and devices</li>
+                            <li>Changes made by any admin are instantly visible to all users</li>
                             <li>Images and videos are stored as URLs only - the actual files are not stored</li>
                         </ul>
                         
                         <p><strong>Important Notes:</strong></p>
                         <ul>
-                            <li>📱 Data is NOT synced across different browsers or devices</li>
-                            <li>🔄 Clearing browser data will delete all your configurations</li>
-                            <li>💾 Use Export feature regularly to backup your data</li>
-                            <li>🌐 Use Import feature to restore or transfer data to another browser</li>
+                            <li>🌐 Data is synced across all browsers and devices via the backend API</li>
+                            <li>💾 Backend must be running for the admin panel to work</li>
+                            <li>🔄 Use Export feature to backup your data as JSON</li>
+                            <li>📤 Use Import feature to restore or migrate configurations</li>
                         </ul>
                         
                         <p><strong>Image and Video Storage:</strong></p>
                         <ul>
-                            <li>Only URLs are stored in localStorage, not the actual media files</li>
+                            <li>Only URLs are stored in the backend, not the actual media files</li>
                             <li>Upload images to: <a href="https://imgur.com" target="_blank">Imgur</a>, <a href="https://cloudinary.com" target="_blank">Cloudinary</a>, or your repository</li>
                             <li>For videos: use YouTube, Vimeo, or other video hosting platforms</li>
                             <li>Recommended: Store images in your GitHub repository under an <code>/images</code> folder</li>
