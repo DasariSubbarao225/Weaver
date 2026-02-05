@@ -167,15 +167,25 @@ The `uploads/` directory is prepared for future media file upload functionality.
 
 - **Admin password is stored as MD5 hash** - This is for DEMO/DEVELOPMENT purposes ONLY
 - **NEVER use MD5 in production** - MD5 is cryptographically broken and should never be used for password hashing
+- **No rate limiting** - The API endpoints are not rate-limited and vulnerable to abuse
 - For production deployments:
   - Implement proper authentication using bcrypt, argon2, or scrypt for password hashing
   - Use JWT tokens or OAuth for session management
-  - Add rate limiting and request validation middleware
+  - **Add rate limiting middleware** (e.g., express-rate-limit) to prevent abuse:
+    ```javascript
+    const rateLimit = require('express-rate-limit');
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 100 // limit each IP to 100 requests per windowMs
+    });
+    app.use('/api/', limiter);
+    ```
   - Implement proper user roles and permissions
   - Use HTTPS/TLS for all communications
   - Update CORS settings to restrict allowed origins
-  - Add input validation and sanitization
+  - Add input validation and sanitization (e.g., express-validator)
   - Implement CSRF protection for state-changing operations
+  - Add logging and monitoring for suspicious activity
 
 This demo authentication is intentionally simple for learning purposes but would be trivial to bypass in a real-world scenario.
 

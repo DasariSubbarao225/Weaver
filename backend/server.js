@@ -1,5 +1,13 @@
 // Weaver Interiors Backend Server
 // Provides REST API for admin panel content management
+//
+// SECURITY NOTE: This is a development/demo server.
+// For production use, you should:
+// - Add rate limiting middleware (e.g., express-rate-limit)
+// - Implement proper authentication and authorization
+// - Add request validation and sanitization
+// - Use HTTPS/TLS
+// - Restrict CORS to specific origins
 
 const express = require('express');
 const cors = require('cors');
