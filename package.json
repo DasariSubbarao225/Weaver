@@ -1,0 +1,25 @@
+{
+  "name": "weaver-interiors",
+  "version": "2.0.0",
+  "description": "Weaver Interiors - Modern interior design website with serverless API",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required for static site'",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "interior-design",
+    "portfolio",
+    "vercel",
+    "serverless"
+  ],
+  "author": "Weaver Interiors",
+  "license": "MIT",
+  "devDependencies": {
+    "vercel": "^33.7.1"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}

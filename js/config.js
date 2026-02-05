@@ -6,7 +6,7 @@
  * 
  * Priority order:
  * 1. Window config (set via config override in index.html)
- * 2. Environment detection (GitHub Pages uses production API)
+ * 2. Environment detection
  * 3. Default to localhost for local development
  */
 function getApiBaseUrl() {
@@ -18,16 +18,21 @@ function getApiBaseUrl() {
     // Detect if running on GitHub Pages or production domain
     const hostname = window.location.hostname;
     
-    // GitHub Pages detection
+    // Vercel deployment - API is on same domain
+    if (hostname.includes('vercel.app')) {
+        return window.location.origin;
+    }
+    
+    // GitHub Pages detection - can use either Vercel API or Render fallback
     if (hostname.includes('github.io')) {
-        // Default production API URL - will be replaced during deployment
-        return 'https://weaver-api.onrender.com';
+        // Use Vercel deployment for API (update this URL after Vercel deployment)
+        return 'https://weaver-interiors.vercel.app';
     }
     
     // Custom domain detection (add your production domain here)
     if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.startsWith('192.168.')) {
-        // Production environment - use environment-specific API URL
-        return 'https://weaver-api.onrender.com';
+        // Production environment - use same origin for Vercel or custom domain
+        return window.location.origin;
     }
     
     // Local development - use localhost

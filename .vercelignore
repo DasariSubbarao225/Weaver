@@ -1,0 +1,48 @@
+# Vercel ignore file - exclude from deployment
+
+# Backend directory (Express server not needed on Vercel)
+backend/
+
+# GitHub workflows
+.github/
+
+# Git files
+.git/
+.gitignore
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Test files
+test-config.html
+
+# Render configuration (not needed on Vercel)
+render.yaml
+
+# Documentation (will be included, but just noting)
+# README.md
+# DEPLOYMENT.md

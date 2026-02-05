@@ -167,25 +167,34 @@ Replace the gradient backgrounds in portfolio items with actual images:
 
 ## 🌐 Deployment
 
-For complete deployment instructions including backend API setup, see [DEPLOYMENT.md](DEPLOYMENT.md).
+### ⭐ Recommended: Deploy Everything on GitHub/Vercel (Easiest)
 
-### Quick Start - Production Deployment
+Deploy both frontend and API from GitHub in one place using Vercel:
 
-**Step 1: Deploy Backend API**
-1. Choose a hosting platform (Render recommended)
-2. Deploy the `/backend` directory
-3. Note your API URL (e.g., `https://weaver-api.onrender.com`)
+1. **Sign up at [vercel.com](https://vercel.com)** with your GitHub account
+2. **Import repository**: `DasariSubbarao225/Weaver`
+3. **Click Deploy** - That's it! 
+4. **Get your URL**: `https://your-project.vercel.app`
 
-**Step 2: Configure Frontend**
-1. Edit `js/config.js` and update the production API URL
-2. Push changes to GitHub
+✅ **Benefits**: 
+- Single deployment for frontend + API
+- Automatic deployments on every push
+- Free tier with generous limits
+- No separate backend hosting needed
 
-**Step 3: Deploy Frontend**
-1. Enable GitHub Pages in repository settings
-2. Push to main branch - automatic deployment via GitHub Actions
-3. Site available at: `https://DasariSubbarao225.github.io/Weaver/`
+📖 **Complete Guide**: [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed step-by-step instructions.
+### Alternative: Separate Deployments
+
+**Option A: GitHub Pages + Render**
+1. Deploy backend to [Render](https://render.com)
+2. Deploy frontend to GitHub Pages
+3. Configure API URL in `js/config.js`
+
+**Option B: Netlify**
+Similar to Vercel, supports serverless functions
+
+📖 **Detailed Instructions**: [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ### Local Development (No Deployment)
 
