@@ -34,9 +34,7 @@ A modern, responsive interior design website showcasing services, portfolio, and
 
 ### Configuration Storage
 
-The admin panel stores all configuration in the browser's localStorage. You can:
-- **Export**: Download your configuration as a JSON file for backup
-- **Import**: Restore configuration from a previously exported JSON file
+The admin panel stores all configuration on a backend server for persistence and synchronization across devices. Changes made in the admin panel are immediately saved to the server and visible to all users.
 
 ## 🚀 Quick Start
 
@@ -48,10 +46,19 @@ The admin panel stores all configuration in the browser's localStorage. You can:
    cd Weaver
    ```
 
-2. **Open the website**
-   - Simply open `index.html` in your web browser
-   - Or use a local server (recommended):
+2. **Start the backend server**
    ```bash
+   cd backend
+   npm install
+   npm start
+   ```
+   
+   The API server will start on `http://localhost:3000`
+
+3. **Start the frontend (in a new terminal)**
+   ```bash
+   cd ..  # Return to project root
+   
    # Using Python 3
    python3 -m http.server 8000
    
@@ -59,8 +66,10 @@ The admin panel stores all configuration in the browser's localStorage. You can:
    npx http-server
    ```
 
-3. **Access the website**
-   - Open your browser and navigate to `http://localhost:8000`
+4. **Access the website**
+   - Frontend: `http://localhost:8000`
+   - Backend API: `http://localhost:3000`
+   - Admin Panel: `http://localhost:8000/admin/`
 
 ## 📁 Project Structure
 
@@ -77,9 +86,15 @@ Weaver/
 │   ├── admin-styles.css   # Admin panel styles
 │   ├── admin-auth.js      # Authentication logic
 │   └── admin-dashboard.js # Dashboard functionality
-├── data/                   # Configuration files
-│   ├── site-config.json   # Site content configuration
-│   └── admin-config.json  # Admin settings
+├── backend/                # Backend API server
+│   ├── server.js          # Express server
+│   ├── package.json       # Backend dependencies
+│   ├── README.md          # Backend documentation
+│   └── data/              # Content storage
+│       └── content.json   # Site content data
+├── data/                   # Legacy configuration files
+│   ├── site-config.json   # Site content configuration (deprecated)
+│   └── admin-config.json  # Admin settings (deprecated)
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml     # GitHub Actions deployment workflow
@@ -120,6 +135,35 @@ Replace the gradient backgrounds in portfolio items with actual images:
 ```html
 <div class="portfolio-image" style="background-image: url('images/your-image.jpg');"></div>
 ```
+
+## 🧪 Testing
+
+### Backend API Testing
+
+1. **Test Health Endpoint**
+   ```bash
+   curl http://localhost:3000/api/health
+   ```
+
+2. **Test Content Retrieval**
+   ```bash
+   curl http://localhost:3000/api/content
+   ```
+
+3. **Test Content Update**
+   ```bash
+   curl -X POST http://localhost:3000/api/content \
+     -H "Content-Type: application/json" \
+     -d @backend/data/content.json
+   ```
+
+### Frontend Integration Testing
+
+1. **Start both servers** (backend on port 3000, frontend on port 8000)
+2. **Open the admin panel** at `http://localhost:8000/admin/`
+3. **Login** with credentials (admin/password)
+4. **Make changes** to content in the admin panel
+5. **Verify changes** are saved by refreshing the main site
 
 ## 🌐 Deployment
 
@@ -162,9 +206,18 @@ Replace the gradient backgrounds in portfolio items with actual images:
 
 ## 🛠️ Technologies Used
 
+### Frontend
 - **HTML5**: Semantic markup
 - **CSS3**: Modern styling with flexbox and grid
 - **JavaScript (ES6+)**: Interactive features
+
+### Backend
+- **Node.js**: Runtime environment
+- **Express.js**: Web server framework
+- **CORS**: Cross-origin resource sharing
+- **File System API**: JSON-based data storage
+
+### Infrastructure
 - **GitHub Actions**: CI/CD automation
 
 ## 📱 Browser Support
